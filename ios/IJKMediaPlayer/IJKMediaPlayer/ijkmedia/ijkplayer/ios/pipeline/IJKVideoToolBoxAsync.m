@@ -26,14 +26,14 @@
 #include "ffpipeline_ios.h"
 #include <mach/mach_time.h>
 #include "libavformat/avc.h"
-#include "ijksdl_vout_ios_gles2.h"
+//#include "ijksdl_vout_ios_gles2.h"
 #include "h264_sps_parser.h"
 #include "ijkplayer/ff_ffplay_debug.h"
 #import <CoreMedia/CoreMedia.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <CoreVideo/CVHostTime.h>
 #import <Foundation/Foundation.h>
-#import "IJKDeviceModel.h"
+//#import "IJKDeviceModel.h"
 #include <stdatomic.h>
 #import <VideoToolbox/VideoToolbox.h>
 #include "ff_ffinc.h"

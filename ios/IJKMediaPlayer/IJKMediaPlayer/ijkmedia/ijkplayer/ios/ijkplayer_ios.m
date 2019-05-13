@@ -32,6 +32,7 @@
 #include "ijkplayer/ijkplayer_internal.h"
 #include "ijkplayer/pipeline/ffpipeline_ffplay.h"
 #include "pipeline/ffpipeline_ios.h"
+#include "ijksdl_vout_ios_null.h"
 
 IjkMediaPlayer *ijkmp_ios_create(int (*msg_loop)(void*))
 {
@@ -39,7 +40,7 @@ IjkMediaPlayer *ijkmp_ios_create(int (*msg_loop)(void*))
     if (!mp)
         goto fail;
 
-    mp->ffplayer->vout = SDL_VoutIos_CreateForGLES2();
+    mp->ffplayer->vout = SDL_VoutIos_CreateForNull();
     if (!mp->ffplayer->vout)
         goto fail;
 
@@ -54,24 +55,6 @@ fail:
     return NULL;
 }
 
-void ijkmp_ios_set_glview_l(IjkMediaPlayer *mp, IJKSDLGLView *glView)
-{
-    assert(mp);
-    assert(mp->ffplayer);
-    assert(mp->ffplayer->vout);
-
-    SDL_VoutIos_SetGLView(mp->ffplayer->vout, glView);
-}
-
-void ijkmp_ios_set_glview(IjkMediaPlayer *mp, IJKSDLGLView *glView)
-{
-    assert(mp);
-    MPTRACE("ijkmp_ios_set_view(glView=%p)\n", (void*)glView);
-    pthread_mutex_lock(&mp->mutex);
-    ijkmp_ios_set_glview_l(mp, glView);
-    pthread_mutex_unlock(&mp->mutex);
-    MPTRACE("ijkmp_ios_set_view(glView=%p)=void\n", (void*)glView);
-}
 
 bool ijkmp_ios_is_videotoolbox_open_l(IjkMediaPlayer *mp)
 {
