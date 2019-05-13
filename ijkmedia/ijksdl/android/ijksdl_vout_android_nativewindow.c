@@ -225,7 +225,7 @@ SDL_Vout *SDL_VoutAndroid_CreateForANativeWindow()
     vout->opaque_class    = &g_nativewindow_class;
     vout->create_overlay  = func_create_overlay;
     vout->free_l          = func_free_l;
-    vout->display_overlay = func_display_overlay;
+    //vout->display_overlay = func_display_overlay;
 
     return vout;
 fail:

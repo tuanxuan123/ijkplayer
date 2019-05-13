@@ -41,8 +41,8 @@
 //#define SDLTRACE ALOGW
 #endif
 
-#define OPENSLES_BUFFERS 255 /* maximum number of buffers */
-#define OPENSLES_BUFLEN  10 /* ms */
+#define OPENSLES_BUFFERS 32 /* maximum number of buffers */
+#define OPENSLES_BUFLEN  2 /* ms */
 
 static SDL_Class g_opensles_class = {
     .name = "OpenSLES",
