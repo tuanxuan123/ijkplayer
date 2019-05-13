@@ -66,6 +66,11 @@
 #include "ff_ffpipenode.h"
 #include "ijkmeta.h"
 
+#ifdef _WIN32
+#include "libavutil/application.h"
+#endif 
+
+
 #define DEFAULT_HIGH_WATER_MARK_IN_BYTES        (256 * 1024)
 
 /*

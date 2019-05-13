@@ -42,7 +42,7 @@ void      ffp_io_stat_complete_register(void (*cb)(const char *url,
 FFPlayer *ffp_create();
 void      ffp_destroy(FFPlayer *ffp);
 void      ffp_destroy_p(FFPlayer **pffp);
-void      ffp_reset(FFPlayer *ffp);
+
 
 /* set options before ffp_prepare_async_l() */
 
@@ -114,6 +114,8 @@ float     ffp_get_property_float(FFPlayer *ffp, int id, float default_value);
 void      ffp_set_property_float(FFPlayer *ffp, int id, float value);
 int64_t   ffp_get_property_int64(FFPlayer *ffp, int id, int64_t default_value);
 void      ffp_set_property_int64(FFPlayer *ffp, int id, int64_t value);
+
+void      ffp_update(FFPlayer *ffp);
 
 // must be freed with free();
 struct IjkMediaMeta *ffp_get_meta_l(FFPlayer *ffp);

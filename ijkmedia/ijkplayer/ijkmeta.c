@@ -23,7 +23,14 @@
 
 #include "ijkmeta.h"
 #include "ff_ffinc.h"
+
+#ifdef _WIN32
+#include "../ijksdl/ijksdl_misc.h"
+#else
 #include "ijksdl/ijksdl_misc.h"
+#endif 
+
+
 
 #define IJK_META_INIT_CAPACITY 13
 

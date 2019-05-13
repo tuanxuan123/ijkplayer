@@ -25,10 +25,17 @@
 #define IJKPLAYER_ANDROID__IJKPLAYER_INTERNAL_H
 
 #include <assert.h>
-#include "ijksdl/ijksdl.h"
+
 #include "ff_fferror.h"
 #include "ff_ffplay.h"
 #include "ijkplayer.h"
+
+#ifdef _WIN32
+#include "../ijksdl/ijksdl.h"
+#else
+#include "ijksdl/ijksdl.h"
+#endif // _WIN32
+
 
 struct IjkMediaPlayer {
     volatile int ref_count;

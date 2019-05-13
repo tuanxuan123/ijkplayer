@@ -37,6 +37,8 @@ typedef struct IjkMediaPlayer IjkMediaPlayer;
 struct FFPlayer;
 struct SDL_Vout;
 
+typedef  void (*ijkmp_frame_callback)(SDL_VoutOverlay* overlay);
+
 /*-
  MPST_CHECK_NOT_RET(mp->mp_state, MP_STATE_IDLE);
  MPST_CHECK_NOT_RET(mp->mp_state, MP_STATE_INITIALIZED);
@@ -217,5 +219,7 @@ void           *ijkmp_set_weak_thiz(IjkMediaPlayer *mp, void *weak_thiz);
 /* need to call msg_free_res for freeing the resouce obtained in msg */
 int             ijkmp_get_msg(IjkMediaPlayer *mp, AVMessage *msg, int block);
 void            ijkmp_set_frame_at_time(IjkMediaPlayer *mp, const char *path, int64_t start_time, int64_t end_time, int num, int definition);
+void            ijkmp_set_frame_callback(IjkMediaPlayer *mp, ijkmp_frame_callback callback);
+void            ijkmp_update(IjkMediaPlayer *mp);
 
 #endif

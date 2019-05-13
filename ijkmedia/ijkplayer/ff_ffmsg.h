@@ -50,8 +50,9 @@
 #define FFP_MSG_SEEK_COMPLETE               600     /* arg1 = seek position,                   arg2 = error */
 #define FFP_MSG_PLAYBACK_STATE_CHANGED      700
 #define FFP_MSG_TIMED_TEXT                  800
-#define FFP_MSG_ACCURATE_SEEK_COMPLETE      900     /* arg1 = current position*/
+#define FFP_MSG_ACCURATE_SEEK_COMPLETE      910     /* arg1 = current position*/
 #define FFP_MSG_GET_IMG_STATE               1000    /* arg1 = timestamp, arg2 = result code, obj = file name*/
+#define FFP_MSG_FRAME_UPDATE                900
 
 #define FFP_MSG_VIDEO_DECODER_OPEN          10001
 

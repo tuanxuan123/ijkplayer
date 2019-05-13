@@ -35,7 +35,27 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <stdio.h>
+
+#ifdef _WIN32
+
+#include "../ijksdl/ijksdl_log.h"
+#define memory_order_seq_cst 5
+#define size_t unsigned int
+//#include <atomic>
+static pthread_mutex_t last_video_mutex;
+static pthread_mutex_t last_audio_mutex;
+static bool is_init_mutex = false;
+
+#else
+
+#include "config.h"
 #include <unistd.h>
+#include <stdatomic.h>
+#include "ijksdl/ijksdl_log.h"
+
+#endif
+
 
 #include "libavutil/avstring.h"
 #include "libavutil/eval.h"
@@ -63,7 +83,6 @@
 # include "libavfilter/buffersrc.h"
 #endif
 
-#include "ijksdl/ijksdl_log.h"
 #include "ijkavformat/ijkavformat.h"
 #include "ff_cmdutils.h"
 #include "ff_fferror.h"
@@ -73,7 +92,8 @@
 #include "ijkmeta.h"
 #include "ijkversion.h"
 #include "ijkplayer.h"
-#include <stdatomic.h>
+
+
 #if defined(__ANDROID__)
 #include "ijksoundtouch/ijksoundtouch_wrap.h"
 #endif
@@ -419,9 +439,9 @@ static int convert_image(FFPlayer *ffp, AVFrame *src_frame, int64_t src_frame_pt
     }
 
     if ((int)(origin_dar * 100) != (int)(dar * 100)) {
-        tmp = img_info->width / origin_dar;
+        tmp = (int)img_info->width / origin_dar;
         if (tmp > img_info->height) {
-            img_info->width = img_info->height * origin_dar;
+            img_info->width = (int)img_info->height * origin_dar;
         } else {
             img_info->height = tmp;
         }
@@ -531,7 +551,16 @@ static int convert_image(FFPlayer *ffp, AVFrame *src_frame, int64_t src_frame_pt
         sprintf(file_name, "%lld", src_frame_pts);
         strcat(file_name, ".png");
         strcat(file_path, file_name);
-
+#ifdef _WIN32
+		FILE *file = fopen(file_path, "w+");
+		if (!file) {
+			ret = -1;
+			av_log(NULL, AV_LOG_ERROR, "%s open path = %s failed %s\n", __func__, file_path, strerror(errno));
+			goto fail2;
+		}
+		fwrite(avpkt.data, avpkt.size, 1, file);
+		fclose(file);
+#else
         fd = open(file_path, O_RDWR | O_TRUNC | O_CREAT, 0600);
         if (fd < 0) {
             ret = -1;
@@ -540,7 +569,7 @@ static int convert_image(FFPlayer *ffp, AVFrame *src_frame, int64_t src_frame_pt
         }
         write(fd, avpkt.data, avpkt.size);
         close(fd);
-
+#endif // _WIN32
         img_info->count--;
 
         file_name_length = (int)strlen(file_name) + 1;
@@ -916,7 +945,22 @@ static void video_image_display2(FFPlayer *ffp)
         }
 
         if (is->latest_video_seek_load_serial == vp->serial) {
-            int latest_video_seek_load_serial = __atomic_exchange_n(&(is->latest_video_seek_load_serial), -1, memory_order_seq_cst);
+#ifdef _WIN32
+			if (!is_init_mutex)
+			{
+				pthread_mutex_init(&last_video_mutex, NULL);
+				pthread_mutex_init(&last_audio_mutex, NULL);
+				is_init_mutex = true;
+			}
+			pthread_mutex_lock(&last_video_mutex);
+			int latest_video_seek_load_serial = is->latest_video_seek_load_serial;
+			is->latest_video_seek_load_serial = -1;
+			pthread_mutex_unlock(&last_video_mutex);
+#else
+			int latest_video_seek_load_serial = __atomic_exchange_n(&(is->latest_video_seek_load_serial), -1, memory_order_seq_cst);
+#endif // _WIN32
+
+            
             if (latest_video_seek_load_serial == vp->serial) {
                 ffp->stat.latest_seek_load_duration = (av_gettime() - is->latest_seek_load_start_at) / 1000;
                 if (ffp->av_sync_type == AV_SYNC_VIDEO_MASTER) {
@@ -1013,8 +1057,10 @@ static void stream_close(FFPlayer *ffp)
 
     avformat_close_input(&is->ic);
 
+#if REFRESH_VIDEO_BY_IJKPLAYER
     av_log(NULL, AV_LOG_DEBUG, "wait for video_refresh_tid\n");
     SDL_WaitThread(is->video_refresh_tid, NULL);
+#endif
 
     packet_queue_destroy(&is->videoq);
     packet_queue_destroy(&is->audioq);
@@ -1419,7 +1465,7 @@ display:
     if (ffp->show_status) {
         static int64_t last_time;
         int64_t cur_time;
-        int aqsize, vqsize, sqsize __unused;
+        int aqsize, vqsize, sqsize;
         double av_diff;
 
         cur_time = av_gettime_relative();
@@ -2703,7 +2749,23 @@ static void sdl_audio_callback(void *opaque, Uint8 *stream, int len)
     }
 
     if (is->latest_audio_seek_load_serial == is->audio_clock_serial) {
-        int latest_audio_seek_load_serial = __atomic_exchange_n(&(is->latest_audio_seek_load_serial), -1, memory_order_seq_cst);
+#ifdef _WIN32
+		if (!is_init_mutex)
+		{
+			pthread_mutex_init(&last_video_mutex, NULL);
+			pthread_mutex_init(&last_audio_mutex, NULL);
+			is_init_mutex = true;
+		}
+
+		pthread_mutex_lock(&last_audio_mutex);
+		int latest_audio_seek_load_serial = is->latest_audio_seek_load_serial;
+		is->latest_audio_seek_load_serial = -1;
+		pthread_mutex_unlock(&last_audio_mutex);
+#else
+		int latest_audio_seek_load_serial = __atomic_exchange_n(&(is->latest_audio_seek_load_serial), -1, memory_order_seq_cst);
+#endif // _WIN32
+
+        
         if (latest_audio_seek_load_serial == is->audio_clock_serial) {
             if (ffp->av_sync_type == AV_SYNC_AUDIO_MASTER) {
                 ffp_notify_msg2(ffp, FFP_MSG_AUDIO_SEEK_RENDERING_START, 1);
@@ -3063,7 +3125,7 @@ static int read_thread(void *arg)
     FFPlayer *ffp = arg;
     VideoState *is = ffp->is;
     AVFormatContext *ic = NULL;
-    int err, i, ret __unused;
+    int err, i, ret;
     int st_index[AVMEDIA_TYPE_NB];
     AVPacket pkt1, *pkt = &pkt1;
     int64_t stream_start_time;
@@ -3401,9 +3463,28 @@ static int read_thread(void *arg)
                 } else {
                    set_clock(&is->extclk, seek_target / (double)AV_TIME_BASE, 0);
                 }
+#ifdef _WIN32
+				if (!is_init_mutex)
+				{
+					pthread_mutex_init(&last_video_mutex, NULL);
+					pthread_mutex_init(&last_audio_mutex, NULL);
+					is_init_mutex = true;
+				}
 
-                is->latest_video_seek_load_serial = is->videoq.serial;
-                is->latest_audio_seek_load_serial = is->audioq.serial;
+				pthread_mutex_lock(&last_video_mutex);
+				is->latest_video_seek_load_serial = is->videoq.serial;
+				pthread_mutex_unlock(&last_video_mutex);
+
+				pthread_mutex_lock(&last_audio_mutex);
+				is->latest_audio_seek_load_serial = is->audioq.serial;
+				pthread_mutex_unlock(&last_audio_mutex);
+
+#else
+				is->latest_video_seek_load_serial = is->videoq.serial;
+				is->latest_audio_seek_load_serial = is->audioq.serial;
+#endif // _WIN32
+
+                
                 is->latest_seek_load_start_at = av_gettime();
             }
             ffp->dcc.current_high_water_mark_in_ms = ffp->dcc.first_high_water_mark_in_ms;
@@ -3555,7 +3636,8 @@ static int read_thread(void *arg)
             }
             if (is->eof) {
                 ffp_toggle_buffering(ffp, 0);
-                SDL_Delay(100);
+				if(ffp->loop < 2)
+					SDL_Delay(100);
             }
             SDL_LockMutex(wait_mutex);
             SDL_CondWaitTimeout(is->continue_read_thread, wait_mutex, 10);
@@ -3703,11 +3785,13 @@ static VideoState *stream_open(FFPlayer *ffp, const char *filename, AVInputForma
     ffp->is = is;
     is->pause_req = !ffp->start_on_prepared;
 
+#if REFRESH_VIDEO_BY_IJKPLAYER
     is->video_refresh_tid = SDL_CreateThreadEx(&is->_video_refresh_tid, video_refresh_thread, ffp, "ff_vout");
     if (!is->video_refresh_tid) {
         av_freep(&ffp->is);
         return NULL;
     }
+#endif
 
     is->initialized_decoder = 0;
     is->read_tid = SDL_CreateThreadEx(&is->_read_tid, read_thread, ffp, "ff_read");
@@ -3759,14 +3843,18 @@ static int video_refresh_thread(void *arg)
 {
     FFPlayer *ffp = arg;
     VideoState *is = ffp->is;
-    double remaining_time = 0.0;
+	static double remaining_time = 0.0;
+#if REFRESH_VIDEO_BY_IJKPLAYER
     while (!is->abort_request) {
+#endif
         if (remaining_time > 0.0)
             av_usleep((int)(int64_t)(remaining_time * 1000000.0));
         remaining_time = REFRESH_RATE;
         if (is->show_mode != SHOW_MODE_NONE && (!is->paused || is->force_refresh))
             video_refresh(ffp, &remaining_time);
+#if REFRESH_VIDEO_BY_IJKPLAYER
     }
+#endif
 
     return 0;
 }
@@ -3838,7 +3926,7 @@ static void ffp_log_callback_brief(void *ptr, int level, const char *fmt, va_lis
     if (level > av_log_get_level())
         return;
 
-    int ffplv __unused = log_level_av_to_ijk(level);
+    int ffplv = log_level_av_to_ijk(level);
     VLOG(ffplv, IJK_LOG_TAG, fmt, vl);
 }
 
@@ -3847,7 +3935,7 @@ static void ffp_log_callback_report(void *ptr, int level, const char *fmt, va_li
     if (level > av_log_get_level())
         return;
 
-    int ffplv __unused = log_level_av_to_ijk(level);
+    int ffplv = log_level_av_to_ijk(level);
 
     va_list vl2;
     char line[1024];
@@ -3861,7 +3949,7 @@ static void ffp_log_callback_report(void *ptr, int level, const char *fmt, va_li
     ALOG(ffplv, IJK_LOG_TAG, "%s", line);
 }
 
-int ijkav_register_all(void);
+extern int ijkav_register_all(void);
 void ffp_global_init()
 {
     if (g_ffmpeg_global_inited)
@@ -4201,7 +4289,13 @@ int ffp_get_video_codec_info(FFPlayer *ffp, char **codec_info)
 
     // FIXME: not thread-safe
     if (ffp->video_codec_info) {
-        *codec_info = strdup(ffp->video_codec_info);
+#ifdef _MSC_VER
+		*codec_info = _strdup(ffp->video_codec_info);
+#else
+		*codec_info = strdup(ffp->video_codec_info);
+#endif // _MSC_VER 
+
+        
     } else {
         *codec_info = NULL;
     }
@@ -4215,7 +4309,11 @@ int ffp_get_audio_codec_info(FFPlayer *ffp, char **codec_info)
 
     // FIXME: not thread-safe
     if (ffp->audio_codec_info) {
+#ifdef _MSC_VER
+		*codec_info = _strdup(ffp->audio_codec_info);
+#else
         *codec_info = strdup(ffp->audio_codec_info);
+#endif
     } else {
         *codec_info = NULL;
     }
@@ -4434,7 +4532,7 @@ long ffp_get_current_position_l(FFPlayer *ffp)
     if (isnan(pos_clock)) {
         pos = fftime_to_milliseconds(is->seek_pos);
     } else {
-        pos = pos_clock * 1000;
+        pos = (int64_t)(pos_clock * 1000);
     }
 
     // If using REAL time and not ajusted, then return the real pos as calculated from the stream
@@ -4498,22 +4596,22 @@ int ffp_packet_queue_init(PacketQueue *q)
 
 void ffp_packet_queue_destroy(PacketQueue *q)
 {
-    return packet_queue_destroy(q);
+    packet_queue_destroy(q);
 }
 
 void ffp_packet_queue_abort(PacketQueue *q)
 {
-    return packet_queue_abort(q);
+    packet_queue_abort(q);
 }
 
 void ffp_packet_queue_start(PacketQueue *q)
 {
-    return packet_queue_start(q);
+    packet_queue_start(q);
 }
 
 void ffp_packet_queue_flush(PacketQueue *q)
 {
-    return packet_queue_flush(q);
+    packet_queue_flush(q);
 }
 
 int ffp_packet_queue_get(PacketQueue *q, AVPacket *pkt, int block, int *serial)
@@ -4546,7 +4644,7 @@ Frame *ffp_frame_queue_peek_writable(FrameQueue *f)
 
 void ffp_frame_queue_push(FrameQueue *f)
 {
-    return frame_queue_push(f);
+    frame_queue_push(f);
 }
 
 int ffp_queue_picture(FFPlayer *ffp, AVFrame *src_frame, double pts, double duration, int64_t pos, int serial)
@@ -4610,7 +4708,7 @@ void ffp_track_statistic_l(FFPlayer *ffp, AVStream *st, PacketQueue *q, FFTrackC
     }
 
     if (q && st && st->time_base.den > 0 && st->time_base.num > 0) {
-        cache->duration = q->duration * av_q2d(st->time_base) * 1000;
+        cache->duration = (int64_t)(q->duration * av_q2d(st->time_base) * 1000);
     }
 }
 
@@ -5028,6 +5126,15 @@ void ffp_set_property_int64(FFPlayer *ffp, int id, int64_t value)
         default:
             break;
     }
+}
+
+
+void ffp_update(FFPlayer *ffp)
+{
+	if (ffp->is == NULL)
+		return;
+
+	video_refresh_thread(ffp);
 }
 
 IjkMediaMeta *ffp_get_meta_l(FFPlayer *ffp)

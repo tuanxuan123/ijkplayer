@@ -22,7 +22,11 @@
 #ifndef FFPLAY__CONFIG_H
 #define FFPLAY__CONFIG_H
 
+#if !_WIN32
 #include "libffmpeg/config.h"
+#endif // !_WIN32
+
+
 
 // FIXME: merge filter related code and enable it
 // remove these lines to enable avfilter
@@ -42,5 +46,9 @@
 #ifndef FFMPEG_LOG_TAG
 #define FFMPEG_LOG_TAG "IJKFFMPEG"
 #endif
+
+//when you want to use ijkplayer itself video refresh, set it to 1
+//otherwise, set it to 0, int this situation£¬you must invoke ijkmp_update() to refresh video
+#define REFRESH_VIDEO_BY_IJKPLAYER 0
 
 #endif//FFPLAY__CONFIG_H

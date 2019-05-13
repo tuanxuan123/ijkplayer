@@ -25,6 +25,16 @@
 #include "ijkplayer_internal.h"
 #include "ijkversion.h"
 
+#ifdef _WIN32
+
+#include "pthread.h"
+
+static pthread_mutex_t ref_count_mutex;
+static bool ref_count_init = false;
+
+#endif // _WIN32
+
+
 #define MP_RET_IF_FAILED(ret) \
     do { \
         int retval = ret; \
@@ -308,21 +318,48 @@ void ijkmp_shutdown_l(IjkMediaPlayer *mp)
 
 void ijkmp_shutdown(IjkMediaPlayer *mp)
 {
-    return ijkmp_shutdown_l(mp);
+    ijkmp_shutdown_l(mp);
 }
 
 void ijkmp_inc_ref(IjkMediaPlayer *mp)
 {
     assert(mp);
-    __sync_fetch_and_add(&mp->ref_count, 1);
+#ifdef _WIN32
+	if (!ref_count_init)
+	{
+		pthread_mutex_init(&ref_count_mutex , NULL);
+		ref_count_init = true;
+	}
+
+	pthread_mutex_lock(&ref_count_mutex);
+	mp->ref_count++;
+	pthread_mutex_unlock(&ref_count_mutex);
+
+#else
+	__sync_fetch_and_add(&mp->ref_count, 1);
+#endif // _WIN32
+
+    
 }
 
 void ijkmp_dec_ref(IjkMediaPlayer *mp)
 {
     if (!mp)
         return;
+#ifdef _WIN32
+	if (!ref_count_init)
+	{
+		pthread_mutex_init(&ref_count_mutex, NULL);
+		ref_count_init = true;
+	}
+	pthread_mutex_lock(&ref_count_mutex);
+	int ref_count = --mp->ref_count;
+	pthread_mutex_unlock(&ref_count_mutex);
+#else
+	int ref_count = __sync_sub_and_fetch(&mp->ref_count, 1);
+#endif // _WIN32
 
-    int ref_count = __sync_sub_and_fetch(&mp->ref_count, 1);
+    
     if (ref_count == 0) {
         MPTRACE("ijkmp_dec_ref(): ref=0\n");
         ijkmp_shutdown(mp);
@@ -356,7 +393,13 @@ static int ijkmp_set_data_source_l(IjkMediaPlayer *mp, const char *url)
     MPST_RET_IF_EQ(mp->mp_state, MP_STATE_END);
 
     freep((void**)&mp->data_source);
-    mp->data_source = strdup(url);
+#ifdef _MSC_VER
+	mp->data_source = _strdup(url);
+#else
+	mp->data_source = strdup(url);
+#endif // _MSC_VER
+
+    
     if (!mp->data_source)
         return EIJK_OUT_OF_MEMORY;
 
@@ -410,6 +453,7 @@ static int ijkmp_prepare_async_l(IjkMediaPlayer *mp)
     // msg_thread is detached inside msg_loop
     // TODO: 9 release weak_thiz if pthread_create() failed;
 
+    
     int retval = ffp_prepare_async_l(mp->ffplayer, mp->data_source);
     if (retval < 0) {
         ijkmp_change_state_l(mp, MP_STATE_ERROR);
@@ -795,4 +839,25 @@ int ijkmp_get_msg(IjkMediaPlayer *mp, AVMessage *msg, int block)
     }
 
     return -1;
+}
+
+
+void ijkmp_set_frame_callback(IjkMediaPlayer *mp, ijkmp_frame_callback callback)
+{
+    assert(mp);
+    pthread_mutex_lock(&mp->mutex);   
+    if(mp->ffplayer && mp->ffplayer->vout)
+        SDL_VoutSetFrameCallback(mp->ffplayer->vout, callback);
+        
+    pthread_mutex_unlock(&mp->mutex);
+   
+}
+
+
+void ijkmp_update(IjkMediaPlayer *mp)
+{
+	assert(mp);
+
+	if (ijkmp_get_state(mp) != MP_STATE_STOPPED)
+		ffp_update(mp->ffplayer);
 }

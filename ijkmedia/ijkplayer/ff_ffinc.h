@@ -32,14 +32,21 @@
 #include "libavformat/avformat.h"
 #include "libavcodec/avfft.h"
 #include "libswscale/swscale.h"
-#include "libavutil/application.h"
+
 #include "libavutil/base64.h"
 #include "libavutil/error.h"
 #include "libavutil/opt.h"
 #include "libavutil/version.h"
 #include "libswresample/swresample.h"
 
+#ifndef _WIN32
+#include "libavutil/application.h"
 #include "ijksdl/ijksdl.h"
+#else
+#include "../ijksdl/ijksdl.h"
+#endif
+
+
 
 typedef int (*ijk_inject_callback)(void *opaque, int type, void *data, size_t data_size);
 

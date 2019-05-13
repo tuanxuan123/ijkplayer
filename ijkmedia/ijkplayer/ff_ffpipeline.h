@@ -24,9 +24,18 @@
 #ifndef FFPLAY__FF_FFPIPELINE_H
 #define FFPLAY__FF_FFPIPELINE_H
 
+#ifdef _WIN32
+#include "../ijksdl/ijksdl_class.h"
+#include "../ijksdl/ijksdl_mutex.h"
+#include "../ijksdl/ijksdl_aout.h"
+#else
 #include "ijksdl/ijksdl_class.h"
 #include "ijksdl/ijksdl_mutex.h"
 #include "ijksdl/ijksdl_aout.h"
+#endif // _WIN32
+
+
+
 #include "ff_ffpipenode.h"
 #include "ff_ffplay_def.h"
 
