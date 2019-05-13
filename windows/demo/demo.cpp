@@ -123,8 +123,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	h5_video_init(UpdateTextureData, MessageCallback);
 	h5_video_play("http://1253131631.vod2.myqcloud.com/26f327f9vodgzp1253131631/bca0bd469031868222923928043/f0.mp4", false, 0);
-	//h5_video_play("E:/common/h5videoplayer/windows/videoplayer/test.mp4", false, 0);
-	//timeSetEvent(10000, 100, TimeProc, 0, 1);
 
 
 	MSG msg;
