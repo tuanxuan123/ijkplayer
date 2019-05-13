@@ -69,7 +69,7 @@ SDL_Vout *SDL_VoutDummy_Create()
     // SDL_Vout_Opaque *opaque = vout->opaque;
 
     vout->free_l = func_free_l;
-    vout->display_overlay = func_display_overlay;
+//    vout->display_overlay = func_display_overlay;
 
     return vout;
 }

@@ -1,6 +1,5 @@
 /*
- * ijksdl_ffinc.h
- *      ffmpeg headers
+ * ijksdl_aout_ios_audiounit.h
  *
  * Copyright (c) 2013 Bilibili
  * Copyright (c) 2013 Zhang Rui <bbcallen@gmail.com>
@@ -22,22 +21,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef IJKSDL__FFMPEG__IJKSDL_FFINC_H
-#define IJKSDL__FFMPEG__IJKSDL_FFINC_H
+#include "../ijksdl_aout.h"
 
-#include "libavutil/imgutils.h"
-#include "libavutil/pixfmt.h"
-#include "libavutil/frame.h"
-#include "libavutil/common.h"
-#include "libavcodec/avcodec.h"
-#include "libswscale/swscale.h"
-
-
-
-#include "../ijksdl_inc_internal.h"
-
-#ifdef _WIN32
-#include "libavutil/pixdesc.h"
-#endif // _WIN32
-
-#endif
+SDL_Aout *SDL_AoutMac_CreateForAudioUnit();
