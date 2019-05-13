@@ -22,10 +22,17 @@
 #include <assert.h>
 #include "ijkiourl.h"
 #include "ijkioprotocol.h"
-#include "ijkplayer/ijkavutil/ijkutils.h"
+
 #include "libavutil/log.h"
 
 #include "libavutil/application.h"
+
+#ifdef _WIN32
+#include "../ijkavutil/ijkutils.h"
+#else
+#include "ijkplayer/ijkavutil/ijkutils.h"
+#endif // _WIN32
+
 
 typedef struct Context {
     IjkURLContext   *inner;

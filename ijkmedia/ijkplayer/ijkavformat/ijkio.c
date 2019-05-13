@@ -27,7 +27,13 @@
 #include "libavutil/opt.h"
 
 #include "ijkiomanager.h"
+#ifdef _WIN32
+#include "../ijkavutil/ijkdict.h"
+#else
 #include "ijkplayer/ijkavutil/ijkdict.h"
+#endif // _WIN32
+
+
 
 typedef struct Context {
     AVClass *class;

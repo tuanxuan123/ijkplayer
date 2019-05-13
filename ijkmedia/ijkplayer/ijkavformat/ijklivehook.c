@@ -24,7 +24,15 @@
 #include "libavutil/avstring.h"
 #include "libavutil/opt.h"
 
+
+#ifdef _WIN32
+#include "../ijkavutil/opt.h"
+
+#else
 #include "ijkplayer/ijkavutil/opt.h"
+#endif // _WIN32
+
+
 
 #include "ijkavformat.h"
 #include "libavutil/application.h"
@@ -89,7 +97,7 @@ static int ijklivehook_read_close(AVFormatContext *avf)
 }
 
 // FIXME: install libavformat/internal.h
-int ff_alloc_extradata(AVCodecParameters *par, int size);
+extern int ff_alloc_extradata(AVCodecParameters *par, int size);
 
 static int copy_stream_props(AVStream *st, AVStream *source_st)
 {
@@ -195,7 +203,13 @@ static int ijklivehook_read_header(AVFormatContext *avf, AVDictionary **options)
     av_strstart(avf->filename, "ijklivehook:", &inner_url);
 
     c->io_control.size = sizeof(c->io_control);
-    strlcpy(c->io_control.url, inner_url, sizeof(c->io_control.url));
+#ifdef _WIN32
+	strncpy(c->io_control.url, inner_url, sizeof(c->io_control.url));
+#else
+	strlcpy(c->io_control.url, inner_url, sizeof(c->io_control.url));
+#endif // _WIN32
+
+    
 
     if (av_stristart(c->io_control.url, "rtmp", NULL) ||
         av_stristart(c->io_control.url, "rtsp", NULL)) {

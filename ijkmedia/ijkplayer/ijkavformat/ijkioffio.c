@@ -20,10 +20,17 @@
  */
 #include "libavformat/url.h"
 #include "libavutil/avstring.h"
-#include "ijkplayer/ijkavutil/ijkutils.h"
+
 #include "ijkiourl.h"
 
 #include <stdint.h>
+
+#ifdef _WIN32
+#include "../ijkavutil/ijkutils.h"
+#else
+#include "ijkplayer/ijkavutil/ijkutils.h"
+#endif // _WIN32
+
 
 typedef struct IjkIOFFioContext {
     URLContext *inner;

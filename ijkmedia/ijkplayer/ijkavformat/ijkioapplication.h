@@ -22,8 +22,16 @@
 #ifndef IJKAVFORMAT_IJKIOAPPLICATION_H
 #define IJKAVFORMAT_IJKIOAPPLICATION_H
 
+
+
+#ifdef _WIN32
+#include "../ijkavutil/ijkutils.h"
+#include "../ijkavutil/ijkthreadpool.h"
+#else
 #include "ijkplayer/ijkavutil/ijkutils.h"
 #include "ijkplayer/ijkavutil/ijkthreadpool.h"
+#endif // _WIN32
+
 
 #include <stdint.h>
 

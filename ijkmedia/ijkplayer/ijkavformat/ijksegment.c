@@ -53,7 +53,13 @@ static int ijksegment_open(URLContext *h, const char *arg, int flags, AVDictiona
     segment_index = (int)strtol(arg, NULL, 0);
     io_control.size = sizeof(io_control);
     io_control.segment_index = segment_index;
-    strlcpy(io_control.url,    arg,    sizeof(io_control.url));
+#ifdef _WIN32
+	strncpy(io_control.url, arg, sizeof(io_control.url));
+#else
+	strlcpy(io_control.url, arg, sizeof(io_control.url));
+#endif // _WIN32
+
+    
 
     if (app_ctx && io_control.segment_index < 0) {
         ret = AVERROR_EXTERNAL;

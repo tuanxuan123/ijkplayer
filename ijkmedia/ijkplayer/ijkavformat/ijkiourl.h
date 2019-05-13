@@ -25,8 +25,14 @@
 #define IJKAVFORMAT_IJKIOURL_H
 
 #include <stdint.h>
-#include "ijkplayer/ijkavutil/ijkdict.h"
 #include "ijkioapplication.h"
+
+#ifdef _WIN32
+#include "../ijkavutil/ijkdict.h"
+#else
+#include "ijkplayer/ijkavutil/ijkdict.h"
+#endif // _WIN32
+
 
 struct IjkURLProtocol;
 

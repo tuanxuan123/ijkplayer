@@ -21,15 +21,23 @@
 
 #include "ijkiomanager.h"
 #include "ijkioprotocol.h"
-#include "ijkplayer/ijkavutil/ijkutils.h"
-#include "ijkplayer/ijkavutil/ijktree.h"
-#include "ijkplayer/ijkavutil/ijkstl.h"
 #include "libavutil/log.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+
+#ifdef _WIN32
+#include "../ijkavutil/ijkutils.h"
+#include "../ijkavutil/ijktree.h"
+#include "../ijkavutil/ijkstl.h"
+#else
+#include "ijkplayer/ijkavutil/ijkutils.h"
+#include "ijkplayer/ijkavutil/ijktree.h"
+#include "ijkplayer/ijkavutil/ijkstl.h"
 #include <unistd.h>
+#endif // _WIN32
 
 #define CONFIG_MAX_LINE 1024
 
@@ -150,12 +158,13 @@ void ijkio_manager_destroy(IjkIOManagerContext *h)
         if (h->ijkio_app_ctx->threadpool_ctx) {
             ijk_threadpool_destroy(h->ijkio_app_ctx->threadpool_ctx, IJK_IMMEDIATE_SHUTDOWN);
         }
-
+#ifndef _WIN32
         if (0 != strlen(h->ijkio_app_ctx->cache_file_path)) {
             if (h->ijkio_app_ctx->fd >= 0) {
                 close(h->ijkio_app_ctx->fd);
             }
         }
+#endif // !_WIN32
         pthread_mutex_destroy(&h->ijkio_app_ctx->mutex);
 
         ijkio_application_closep(&h->ijkio_app_ctx);
@@ -351,9 +360,11 @@ void ijkio_manager_will_share_cache_map(IjkIOManagerContext *h) {
     h->ijkio_app_ctx->shared = 1;
     ijk_map_traversal_handle(h->ijkio_app_ctx->cache_info_map, map_tree_info_fp, ijkio_manager_save_tree_to_file);
     fclose(map_tree_info_fp);
+#ifndef _WIN32
     if (h->ijkio_app_ctx->fd >= 0) {
-        fsync(h->ijkio_app_ctx->fd);
+		fsync(h->ijkio_app_ctx->fd);
     }
+#endif // !_WIN32
     pthread_mutex_unlock(&h->ijkio_app_ctx->mutex);
 }
 

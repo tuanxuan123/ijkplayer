@@ -21,10 +21,7 @@
 #include "ijkiourl.h"
 #include "ijkioprotocol.h"
 #include "ijkioapplication.h"
-#include "ijkplayer/ijkavutil/ijktree.h"
-#include "ijkplayer/ijkavutil/ijkutils.h"
-#include "ijkplayer/ijkavutil/ijkthreadpool.h"
-#include "ijkplayer/ijkavutil/ijkstl.h"
+
 #include "libavutil/log.h"
 
 #include <stdint.h>
@@ -34,8 +31,22 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <unistd.h>
+
 #include <assert.h>
+
+#ifdef _WIN32
+#include "../ijkavutil/ijktree.h"
+#include "../ijkavutil/ijkutils.h"
+#include "../ijkavutil/ijkthreadpool.h"
+#include "../ijkavutil/ijkstl.h"
+#else
+#include <unistd.h>
+#include "ijkplayer/ijkavutil/ijktree.h"
+#include "ijkplayer/ijkavutil/ijkutils.h"
+#include "ijkplayer/ijkavutil/ijkthreadpool.h"
+#include "ijkplayer/ijkavutil/ijkstl.h"
+#endif // _WIN32
+
 
 #define DEFAULT_CACHE_MAX_CAPACITY            (512 * 1024 * 1024)
 #define DEFAULT_CACHE_FILE_FORWARDS_CAPACITY  (8 * 1024 * 1024)
@@ -165,6 +176,8 @@ static int ijkio_cache_file_error(IjkURLContext *h) {
             c->file_inner_pos        = 0;
             c->io_eof_reached        = 0;
             c->file_logical_pos      = c->read_logical_pos;
+
+#ifndef _WIN32
             close(c->fd);
             c->fd = -1;
             c->ijkio_app_ctx->fd = -1;
@@ -189,6 +202,7 @@ static int ijkio_cache_file_error(IjkURLContext *h) {
                 c->cache_file_close = 1;
                 goto fail;
             }
+#endif // !_WIN32
         }
         pthread_mutex_unlock(&h->ijkio_app_ctx->mutex);
     }
@@ -206,6 +220,8 @@ static int64_t ijkio_cache_file_overrang(IjkURLContext *h, int64_t *cur_pos, int
 
     pthread_mutex_lock(&h->ijkio_app_ctx->mutex);
 
+
+#ifndef _WIN32
     if (!c->ijkio_app_ctx->shared) {
         ijk_map_remove(c->cache_info_map, (int64_t)c->cur_file_no);
         ijk_map_traversal_handle(c->cache_info_map, NULL, tree_destroy);
@@ -228,6 +244,7 @@ static int64_t ijkio_cache_file_overrang(IjkURLContext *h, int64_t *cur_pos, int
     return c->cache_max_capacity;
 
 fail:
+#endif // !_WIN32
     pthread_mutex_unlock(&h->ijkio_app_ctx->mutex);
     return FILE_RW_ERROR;
 }
@@ -242,6 +259,9 @@ static int64_t add_entry(IjkURLContext *h, const unsigned char *buf, int size)
     struct IjkAVTreeNode *node = NULL;
     int64_t free_space = 0;
 
+#ifdef _WIN32
+	return 0;
+#else
     //FIXME avoid lseek
     pos = lseek(c->fd, *c->last_physical_pos, SEEK_SET);
 
@@ -307,22 +327,31 @@ static int64_t add_entry(IjkURLContext *h, const unsigned char *buf, int size)
         entry->size += ret;
 
     return ret;
+
+
 fail:
     //we could truncate the file to pos here if pos >=0 but ftruncate isn't available in VS so
     //for simplicty we just leave the file a bit larger
     free(entry);
     free(node);
     return ret;
+#endif // !_WIN32
+
 }
 
 static int wrapped_file_read(IjkURLContext *h, void *dst, int size)
 {
+#ifdef _WIN32
+
+	return -1;
+#else
     IjkIOCacheContext *c   = h->priv_data;
-    int ret;
+    int ret = -1;
 
     ret = (int)read(c->fd, dst, size);
     c->read_file_inner_error = ret < 0 ? ret : 0;
     return ret;
+#endif 
 }
 
 static int wrapped_url_read(IjkURLContext *h, void *dst, int size)
@@ -596,6 +625,8 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
         return -1;
     }
 
+#ifndef _WIN32
+
     if (!c->cache_file_close) {
         do {
             if (c->ijkio_app_ctx->fd >= 0) {
@@ -649,6 +680,7 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
             }
         } while(0);
     }
+#endif // !_WIN32
 
     ret = ijkio_alloc_url(&(c->inner), url);
     if (c->inner && !ret) {
@@ -739,6 +771,10 @@ static int ijkio_file_read(IjkURLContext *h, void *dest, int to_read)
     int64_t ret            = 0;
     int to_copy            = 0;
 
+#ifdef _WIN32
+	return 0;
+#else
+
     if (!c->tree_info)
         return 0;
 
@@ -773,10 +809,17 @@ static int ijkio_file_read(IjkURLContext *h, void *dest, int to_read)
         }
     }
     return (int)ret;
+#endif // _WIN32
+
 }
 
 static int64_t sync_add_entry(IjkURLContext *h, const unsigned char *buf, int size)
 {
+#ifdef _WIN32
+	return -1;
+#else
+
+
     IjkIOCacheContext *c= h->priv_data;
     int64_t pos = -1;
     int64_t ret = 0;
@@ -850,6 +893,8 @@ fail:
     free(entry);
     free(node);
     return ret;
+#endif // _WIN32
+
 }
 
 static int ijkio_cache_sync_read(IjkURLContext *h, unsigned char *buf, int size) {
@@ -865,6 +910,11 @@ static int ijkio_cache_sync_read(IjkURLContext *h, unsigned char *buf, int size)
     if (to_read <= 0) {
         return to_read;
     }
+
+#ifdef _WIN32
+	return 0;
+#else
+
 
     if (c->tree_info) {
         entry = ijk_av_tree_find(c->tree_info->root, &c->read_logical_pos, cmp, (void**)next);
@@ -951,6 +1001,8 @@ static int ijkio_cache_sync_read(IjkURLContext *h, unsigned char *buf, int size)
     }
 
     return (int)ret;
+#endif // _WIN32
+
 }
 
 static int ijkio_cache_read(IjkURLContext *h, unsigned char *buf, int size) {
@@ -1142,6 +1194,7 @@ static int ijkio_cache_resume(IjkURLContext *h) {
     if (!c || !c->inner || !c->inner->prot)
         return IJKAVERROR(ENOSYS);
 
+#ifndef _WIN32
     if (!c->cache_file_path || 0 == strlen(c->cache_file_path) || c->cache_file_close) {
         c->cache_file_close = 1;
     } else {
@@ -1157,6 +1210,7 @@ static int ijkio_cache_resume(IjkURLContext *h) {
             }
         }
     }
+#endif // !_WIN32
 
     if (c->inner->prot->url_resume) {
         ret = c->inner->prot->url_resume(c->inner);
