@@ -1,0 +1,363 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ijkplayer">
+      <UniqueIdentifier>{4e0e1313-0434-4a83-803a-4b50039e2bf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijksdl">
+      <UniqueIdentifier>{26afa03b-7993-4102-b605-158cd2277499}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijksdl\windows">
+      <UniqueIdentifier>{41d7e989-0a6d-4c6d-9160-413ae2b75380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijkplayer\pipeline">
+      <UniqueIdentifier>{5cfca76a-741c-432a-9685-a3d410e33219}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijkplayer\windows">
+      <UniqueIdentifier>{0b3a5122-b8a9-4a90-a376-d289587150b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijkplayer\windows\pipeline">
+      <UniqueIdentifier>{fb5f0930-a8ea-4ec5-b31f-5fa23d09cc09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijksdl\ffmpeg">
+      <UniqueIdentifier>{a9d7f45c-c0b2-4770-a54d-2f9cf4b50e13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijksdl\ffmpeg\abi_all">
+      <UniqueIdentifier>{44e26dc7-5462-41db-9600-08298ece6dbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijkplayer\ijkavformat">
+      <UniqueIdentifier>{769a3d0c-a9be-4e47-a861-08693d335fd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ijkplayer\ijkavutil">
+      <UniqueIdentifier>{41394f2d-df00-4fe4-af68-0731ce796d2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ffmpeg">
+      <UniqueIdentifier>{162a80c9-0ddf-4466-a815-9d4c7bcfff2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ffmpeg\libavutil">
+      <UniqueIdentifier>{546d23af-a767-4cfe-8be0-47033f017699}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ffmpeg\libavformat">
+      <UniqueIdentifier>{bdb6a941-2c63-490c-85f4-f450532f94fa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_aout.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_aout_internal.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_audio.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_class.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_container.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_endian.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_error.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_fourcc.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_gles2.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_inc_internal.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_log.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_misc.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_mutex.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_stdinc.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_thread.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_timer.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_video.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_vout.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_vout_internal.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_directsound.h">
+      <Filter>ijksdl\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_vout_windows_null.h">
+      <Filter>ijksdl\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_vout_overlay_ffmpeg.h">
+      <Filter>ijksdl\ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_image_convert.h">
+      <Filter>ijksdl\ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_inc_ffmpeg.h">
+      <Filter>ijksdl\ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_windows_interface.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffpipenode.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffinc.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffmsg.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_fferror.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_cmdutils.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffmsg_queue.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay_debug.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay_options.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\h5_player.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkmeta.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkplayer_internal.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkversion.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffpipeline.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay_def.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="ffmpeg\libavutil\application.h">
+      <Filter>ffmpeg\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkavformat.h">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioapplication.h">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiomanager.h">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioprotocol.h">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiourl.h">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkdict.h">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkfifo.h">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkthreadpool.h">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijktree.h">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkutils.h">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\opt.h">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkplayer.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\pipeline\ffpipenode_ffplay_vdec.h">
+      <Filter>ijkplayer\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\windows\pipeline\ffpipeline_windows.h">
+      <Filter>ijkplayer\windows\pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\windows\ijkplayer_windows.h">
+      <Filter>ijkplayer\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\config.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkstl.h">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_aout.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_audio.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_error.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_mutex.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_stdinc.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_thread.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_timer.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_vout.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_directsound.c">
+      <Filter>ijksdl\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_vout_windows_null.c">
+      <Filter>ijksdl\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_vout_overlay_ffmpeg.c">
+      <Filter>ijksdl\ffmpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ffmpeg\abi_all\image_convert.c">
+      <Filter>ijksdl\ffmpeg\abi_all</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_windows_interface.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_cmdutils.c">
+      <Filter>ijkplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkmeta.c">
+      <Filter>ijkplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_ffpipenode.c">
+      <Filter>ijkplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_ffpipeline.c">
+      <Filter>ijkplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="ffmpeg\libavutil\application.c">
+      <Filter>ffmpeg\libavutil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_ffplay.c">
+      <Filter>ijkplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\allformats.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkasync.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkio.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioapplication.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiocache.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioffio.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiomanager.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioprotocol.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiourlhook.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijklivehook.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijklongurl.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkmediadatasource.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijksegment.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkurlhook.c">
+      <Filter>ijkplayer\ijkavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkdict.c">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkfifo.c">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkthreadpool.c">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijktree.c">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkutils.c">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkplayer.c">
+      <Filter>ijkplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\pipeline\ffpipenode_ffplay_vdec.c">
+      <Filter>ijkplayer\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\windows\pipeline\ffpipeline_windows.c">
+      <Filter>ijkplayer\windows\pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\windows\ijkplayer_windows.c">
+      <Filter>ijkplayer\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ffmpeg\libavformat\async.c">
+      <Filter>ffmpeg\libavformat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkstl.c">
+      <Filter>ijkplayer\ijkavutil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\h5_player.c">
+      <Filter>ijkplayer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="videoplayer.def" />
+  </ItemGroup>
+</Project>

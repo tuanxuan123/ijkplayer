@@ -1,0 +1,14 @@
+LIBRARY "videoplayer"
+EXPORTS
+h5_video_init @1
+h5_video_set_option @2
+h5_video_play @3
+h5_video_update @4
+h5_video_pause @5
+h5_video_resume @6
+h5_video_seek @7
+h5_video_stop @8
+h5_video_destroy @9
+h5_video_get_duration @10
+h5_video_get_position @11
+

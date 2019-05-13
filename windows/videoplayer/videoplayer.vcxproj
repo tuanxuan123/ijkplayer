@@ -1,0 +1,270 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{49E2D911-CED9-4A4B-9AD8-8D4AAC78EC7A}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>videoplayer</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir)ffmpeg;$(ProjectDir)libs\pthread\include;$(ProjectDir)libs\ffmpeg-win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)libs\pthread\x64;$(ProjectDir)libs\ffmpeg-win64\lib;$(LibraryPath)</LibraryPath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir)\ffmpeg;$(ProjectDir)libs\pthread\include;$(ProjectDir)libs\ffmpeg-win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)libs\pthread\x64;E:\common\h5videoplayer\windows\videoplayer\libs\ffmpeg-win64\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Source.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib</AdditionalDependencies>
+      <ModuleDefinitionFile>videoplayer.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Source.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>videoplayer.def</ModuleDefinitionFile>
+      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\config.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_cmdutils.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_fferror.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffinc.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffmsg.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffmsg_queue.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffpipeline.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffpipenode.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay_debug.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay_def.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ff_ffplay_options.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\h5_player.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkavformat.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioapplication.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiomanager.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioprotocol.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiourl.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkdict.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkfifo.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkstl.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkthreadpool.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijktree.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkutils.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\opt.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkmeta.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkplayer.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkplayer_internal.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkversion.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\pipeline\ffpipenode_ffplay_vdec.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\windows\ijkplayer_windows.h" />
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\windows\pipeline\ffpipeline_windows.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_image_convert.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_inc_ffmpeg.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_vout_overlay_ffmpeg.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_aout.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_aout_internal.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_audio.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_class.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_container.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_endian.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_error.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_fourcc.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_gles2.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_inc_internal.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_log.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_misc.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_mutex.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_stdinc.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_thread.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_timer.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_video.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_vout.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_vout_internal.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_windows_interface.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_directsound.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_vout_windows_null.h" />
+    <ClInclude Include="ffmpeg\libavutil\application.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_cmdutils.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_ffpipeline.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_ffpipenode.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ff_ffplay.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\h5_player.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\allformats.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkasync.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkio.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioapplication.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiocache.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioffio.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiomanager.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkioprotocol.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkiourlhook.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijklivehook.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijklongurl.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkmediadatasource.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijksegment.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavformat\ijkurlhook.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkdict.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkfifo.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkstl.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkthreadpool.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijktree.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkutils.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkmeta.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\ijkplayer.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\pipeline\ffpipenode_ffplay_vdec.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\windows\ijkplayer_windows.c" />
+    <ClCompile Include="..\..\ijkmedia\ijkplayer\windows\pipeline\ffpipeline_windows.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ffmpeg\abi_all\image_convert.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_vout_overlay_ffmpeg.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_aout.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_audio.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_error.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_mutex.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_stdinc.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_thread.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_timer.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_vout.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_windows_interface.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_directsound.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_vout_windows_null.c" />
+    <ClCompile Include="ffmpeg\libavformat\async.c" />
+    <ClCompile Include="ffmpeg\libavutil\application.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="videoplayer.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
