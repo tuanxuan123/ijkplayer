@@ -41,13 +41,13 @@ static void frame_update_callback(SDL_VoutOverlay* overlay)
 		case SDL_FCC_YV12:
 			deal_yuv420p_data(overlay);
 			break;
+		case SDL_FCC_NV12:
 		case SDL_FCC__VTB:		
 			deal_yuv420sp_data(overlay);
 			break;
 		case SDL_FCC_RV16:      ALOGE("not support SDL_FCC_RV16\n"); break;
 		case SDL_FCC_RV24:      ALOGE("not support SDL_FCC_RV24\n"); break;
 		case SDL_FCC_RV32:      ALOGE("not support SDL_FCC_RV32\n"); break;
-		case SDL_FCC_NV12:      ALOGE("not support SDL_FCC_NV12\n"); break;
 		default:				ALOGE("can not match format"); break;
 	}
 	
@@ -55,9 +55,10 @@ static void frame_update_callback(SDL_VoutOverlay* overlay)
 
 
 
-static bool transform_yuv2rgba(int w, int h, const uint8_t* yuv_data[], int yuv_linesize[], uint8_t* rgba_data[], int rgba_linesize[])
+static bool transform_yuv2rgba(int w, int h, const uint8_t* yuv_data[], int yuv_linesize[], uint8_t* rgba_data[], int rgba_linesize[], enum AVPixelFormat yuv_format)
 {
-	struct SwsContext* context = sws_getContext(w, h, AV_PIX_FMT_YUV420P, w, h, AV_PIX_FMT_RGBA, SWS_BICUBIC, NULL, NULL, NULL);
+    //AV_PIX_FMT_NV12 AV_PIX_FMT_YUV420P
+	struct SwsContext* context = sws_getContext(w, h, yuv_format, w, h, AV_PIX_FMT_RGBA, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 
 	if (context)
 	{
@@ -126,13 +127,13 @@ static void deal_yuv420p_data(SDL_VoutOverlay* overlay)
 		}
 
 	}
-
-	if(transform_yuv2rgba(w, h, yuv_data, yuv_linesize, rgba_data, rgba_linesize))
+    
+	if(transform_yuv2rgba(w, h, (const uint8_t**)&yuv_data, yuv_linesize, rgba_data, rgba_linesize, AV_PIX_FMT_YUV420P))
 		s_player_callback(s_video_index, w, h, rgba_data[0]);
 	
 
-	av_freep(&yuv_data[0]);
-	av_freep(&rgba_data[0]);
+	av_freep(yuv_data);
+	av_freep(rgba_data);
 }
 
 
@@ -151,27 +152,20 @@ static void deal_yuv420sp_data(SDL_VoutOverlay* overlay)
 	uint8_t *rgba_data[4];
 	int rgba_linesize[4];
 
-	av_image_alloc(yuv_data, yuv_linesize, w, h, AV_PIX_FMT_YUV420P, 1);
+	av_image_alloc(yuv_data, yuv_linesize, w, h, AV_PIX_FMT_NV12, 1);
 	av_image_alloc(rgba_data, rgba_linesize, w, h, AV_PIX_FMT_RGBA, 1);
 
 	//maybe need to do align
 	memcpy(yuv_data[0], pixels[0], w*h);
+    memcpy(yuv_data[1], pixels[1], w*h/2);
+    
 
-	int uv_size = w * h / 4;
-	for (int i = 1; i < 3; ++i)
-	{
-		for (int index = 0; index < uv_size; ++index)
-		{
-			yuv_data[i][index] = pixels[1][i - 1 + 2 * index];
-		}
-	}
-
-	if (transform_yuv2rgba(w, h, yuv_data, yuv_linesize, rgba_data, rgba_linesize))
+	if (transform_yuv2rgba(w, h, (const uint8_t**)&yuv_data, yuv_linesize, rgba_data, rgba_linesize, AV_PIX_FMT_NV12))
 		s_player_callback(s_video_index, w, h, rgba_data[0]);
 
 
-	av_freep(&yuv_data[0]);
-	av_freep(&rgba_data[0]);
+	av_freep(yuv_data);
+	av_freep(rgba_data);
 
 }
 
@@ -224,6 +218,9 @@ void create_mac_player()
 void create_ios_player()
 {
     s_media_player = ijkmp_ios_create(media_player_msg_loop);
+    av_log_set_level(AV_LOG_ERROR);
+    
+    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "videotoolbox", 1);  
 }
 
 #elif __ANDROID__
