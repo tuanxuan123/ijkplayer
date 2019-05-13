@@ -23,11 +23,20 @@
  */
 
 #include "ijksdl_timer.h"
-#include <unistd.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+
+#ifdef _WIN32
+#include <winsock.h>
+#include "ijksdl_windows_interface.h"
+#else
+#include <unistd.h>
 #include <sys/time.h>
+#endif
+
+
 
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
@@ -42,6 +51,9 @@ int nanosleep(const struct timespec *, struct timespec *) __DARWIN_ALIAS_C(nanos
 
 #include "ijksdl_log.h"
 
+
+
+
 void SDL_Delay(Uint32 ms)
 {
     int was_error;
@@ -53,9 +65,20 @@ void SDL_Delay(Uint32 ms)
     do {
         tv.tv_sec = elapsed.tv_sec;
         tv.tv_nsec = elapsed.tv_nsec;
-        was_error = nanosleep(&tv, &elapsed);
+#ifdef  _WIN32
+		was_error = 0;
+		Sleep(ms);
+#else
+		was_error = nanosleep(&tv, &elapsed);
+#endif //  _WIN32
+
+        
     } while (was_error);
 }
+
+
+
+
 
 Uint64 SDL_GetTickHR(void)
 {
@@ -81,6 +104,10 @@ Uint64 SDL_GetTickHR(void)
         gettimeofday(&now, NULL);
         clock = now.tv_sec  * 1000 + now.tv_usec / 1000;
     }
+#elif defined(_WIN32)
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	clock = now.tv_sec * 1000 + now.tv_usec / 1000;
 #endif
     return (clock);
 }

@@ -24,7 +24,8 @@
 
 #include "ijksdl_aout.h"
 #include <stdlib.h>
-#include "ijkplayer/ff_ffplay_def.h"
+
+#define SDL_AUDIO_MAX_CALLBACKS_PER_SECOND 30
 
 int SDL_AoutOpenAudio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
 {
@@ -55,7 +56,7 @@ void SDL_AoutSetStereoVolume(SDL_Aout *aout, float left_volume, float right_volu
 void SDL_AoutCloseAudio(SDL_Aout *aout)
 {
     if (aout && aout->close_audio)
-        return aout->close_audio(aout);
+        aout->close_audio(aout);
 }
 
 void SDL_AoutFree(SDL_Aout *aout)
@@ -131,5 +132,5 @@ int SDL_AoutGetAudioPerSecondCallBacks(SDL_Aout *aout)
             return aout->func_get_audio_persecond_callbacks(aout);
         }
     }
-    return SDL_AUDIO_MAX_CALLBACKS_PER_SEC;
+    return SDL_AUDIO_MAX_CALLBACKS_PER_SECOND;
 }

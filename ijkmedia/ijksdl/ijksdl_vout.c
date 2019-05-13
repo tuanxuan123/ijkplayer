@@ -53,8 +53,13 @@ void SDL_VoutFreeP(SDL_Vout **pvout)
 
 int SDL_VoutDisplayYUVOverlay(SDL_Vout *vout, SDL_VoutOverlay *overlay)
 {
-    if (vout && overlay && vout->display_overlay)
-        return vout->display_overlay(vout, overlay);
+    
+    if(vout && overlay && vout->frame_callback)
+    {
+        vout->frame_callback(overlay);
+        return 0;
+        
+    }
 
     return -1;
 }
@@ -116,4 +121,14 @@ int SDL_VoutFillFrameYUVOverlay(SDL_VoutOverlay *overlay, const AVFrame *frame)
         return -1;
 
     return overlay->func_fill_frame(overlay, frame);
+}
+
+
+int  SDL_VoutSetFrameCallback(SDL_Vout *vout, void(*callback)(SDL_VoutOverlay *overlay))
+{
+    if (!vout)
+        return -1;
+    
+    vout->frame_callback = callback;
+    return 0;
 }

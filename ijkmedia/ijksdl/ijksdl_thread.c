@@ -24,20 +24,31 @@
 
 #include <errno.h>
 #include <assert.h>
-#include <unistd.h>
+#include <string.h>
 #include "ijksdl_inc_internal.h"
 #include "ijksdl_thread.h"
 #ifdef __ANDROID__
 #include "ijksdl/android/ijksdl_android_jni.h"
 #endif
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
+
 #if !defined(__APPLE__)
 // using ios implement for autorelease
 static void *SDL_RunThread(void *data)
 {
     SDL_Thread *thread = data;
-    ALOGI("SDL_RunThread: [%d] %s\n", (int)gettid(), thread->name);
+    
+#ifndef _WIN32
+	ALOGI("SDL_RunThread: [%d] %s\n", (int)gettid(), thread->name);
     pthread_setname_np(pthread_self(), thread->name);
+#else
+	//ALOGI("SDL_RunThread: [%d] %s\n", (int)GetCurrentThreadId(), thread->name);
+#endif
+
     thread->retval = thread->func(thread->data);
 #ifdef __ANDROID__
     SDL_JNI_DetachThreadEnv();
@@ -49,7 +60,13 @@ SDL_Thread *SDL_CreateThreadEx(SDL_Thread *thread, int (*fn)(void *), void *data
 {
     thread->func = fn;
     thread->data = data;
-    strlcpy(thread->name, name, sizeof(thread->name) - 1);
+#ifdef _WIN32
+	strncpy_s(thread->name, 32, name, sizeof(thread->name) - 1);
+#else
+	strlcpy(thread->name, name, sizeof(thread->name) - 1);
+#endif // !_WIN32
+
+    
     int retval = pthread_create(&thread->id, NULL, SDL_RunThread, thread);
     if (retval)
         return NULL;

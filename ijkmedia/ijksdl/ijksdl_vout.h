@@ -69,6 +69,8 @@ struct SDL_Vout {
     int (*display_overlay)(SDL_Vout *vout, SDL_VoutOverlay *overlay);
 
     Uint32 overlay_format;
+
+    void (*frame_callback)(SDL_VoutOverlay *overlay);
 };
 
 void SDL_VoutFree(SDL_Vout *vout);
@@ -82,5 +84,6 @@ int     SDL_VoutUnlockYUVOverlay(SDL_VoutOverlay *overlay);
 void    SDL_VoutFreeYUVOverlay(SDL_VoutOverlay *overlay);
 void    SDL_VoutUnrefYUVOverlay(SDL_VoutOverlay *overlay);
 int     SDL_VoutFillFrameYUVOverlay(SDL_VoutOverlay *overlay, const AVFrame *frame);
+int     SDL_VoutSetFrameCallback(SDL_Vout *vout, void(*callback)(SDL_VoutOverlay *overlay));
 
 #endif
