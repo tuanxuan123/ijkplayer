@@ -23,16 +23,24 @@
 
 #include <stdint.h>
 
-void* ijk_map_create();
-void ijk_map_put(void *data, int64_t key, void *value);
-void* ijk_map_get(void *data, int64_t key);
-int ijk_map_remove(void *data, int64_t key);
-int ijk_map_size(void *data);
-int ijk_map_max_size(void *data);
-void* ijk_map_index_get(void *data, int index);
-void ijk_map_traversal_handle(void *data, void *parm, int (*enu)(void *parm, int64_t key, void *elem));
-int64_t ijk_map_get_min_key(void *data);
-void ijk_map_clear(void *data);
-void ijk_map_destroy(void *data);
+ typedef struct IjkMap
+ {
+ 	int 		size;
+ 	int64_t 	*keys;
+ 	void 		**values;
+ 	int 		usedIdx;
+
+ }IjkMap;
+
+IjkMap* ijk_map_create();
+void ijk_map_put(IjkMap *data, int64_t key, void *value);
+void* ijk_map_get(IjkMap *data, int64_t key);
+int ijk_map_remove(IjkMap *data, int64_t key);
+int ijk_map_size(IjkMap *data);
+void* ijk_map_index_get(IjkMap *data, int index);
+void ijk_map_traversal_handle(IjkMap *data, void *parm, int(*enu)(void *parm, int64_t key, void *elem));
+int64_t ijk_map_get_min_key(IjkMap *data);
+void ijk_map_clear(IjkMap *data);
+void ijk_map_destroy(IjkMap *data);
 
 #endif /* IJKAVUTIL_IJKSTL_H */

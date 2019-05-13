@@ -80,11 +80,19 @@ int ijk_av_dict_set(IjkAVDictionary **pm, const char *key, const char *value,
     if (flags & IJK_AV_DICT_DONT_STRDUP_KEY)
         copy_key = (void *)key;
     else
-        copy_key = strdup(key);
+#ifdef _MSC_VER
+		copy_key = _strdup(key);
+#else
+		copy_key = strdup(key);
+#endif // _MSC_VER       
     if (flags & IJK_AV_DICT_DONT_STRDUP_VAL)
         copy_value = (void *)value;
     else if (copy_key)
+#ifdef _MSC_VER
+		copy_value = _strdup(value);
+#else
         copy_value = strdup(value);
+#endif
     if (!m)
         m = *pm = (IjkAVDictionary *)calloc(1, sizeof(*m));
     if (!m || (key && !copy_key) || (value && !copy_value))
@@ -117,9 +125,17 @@ int ijk_av_dict_set(IjkAVDictionary **pm, const char *key, const char *value,
             char *newval = (char *)calloc(1, len);
             if (!newval)
                 goto err_out;
-            strlcat(newval, oldval, len);
-            ijk_av_freep(&oldval);
-            strlcat(newval, copy_value, len);
+#ifdef _WIN32
+			strncat(newval, oldval, len);
+			ijk_av_freep(&oldval);
+			strncat(newval, copy_value, len);
+#else
+			strlcat(newval, oldval, len);
+			ijk_av_freep(&oldval);
+			strlcat(newval, copy_value, len);
+#endif // _WIN32
+
+            
             m->elems[m->count].value = newval;
             ijk_av_freep(&copy_value);
         }
