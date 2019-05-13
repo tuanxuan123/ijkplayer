@@ -25,7 +25,7 @@
 
 #import <Foundation/Foundation.h>
 
-#include "ijksdl/ijksdl_aout.h"
+#include "ijksdl_aout.h"
 
 @interface IJKSDLAudioQueueController : NSObject
 

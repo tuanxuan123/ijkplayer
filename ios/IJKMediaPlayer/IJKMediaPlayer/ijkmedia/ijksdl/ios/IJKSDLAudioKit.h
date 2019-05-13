@@ -24,7 +24,7 @@
  */
 
 #import <AVFoundation/AVFoundation.h>
-#include "ijksdl/ijksdl_aout.h"
+#include "ijksdl_aout.h"
 
 extern void IJKSDLGetAudioComponentDescriptionFromSpec(const SDL_AudioSpec *spec, AudioComponentDescription *desc);
 extern void IJKSDLGetAudioStreamBasicDescriptionFromSpec(const SDL_AudioSpec *spec, AudioStreamBasicDescription *desc);
