@@ -262,9 +262,17 @@ android/example is based on or derives from projects below:
 - GPL
   - [android-ndk-profiler](https://github.com/richq/android-ndk-profiler) (not included by default)
 
+android/demo is based on or derives from projects below:
+- Apache License 2.0
+  - [android-vulkan-tutorials](https://github.com/googlesamples/android-vulkan-tutorials)
+  
 ios/IJKMediaDemo is based on or derives from projects below:
 - Unknown license
   - [iOS7-BarcodeScanner](https://github.com/jpwiddy/iOS7-BarcodeScanner)
+
+windows/FFmpeg-ijkplayer is based on or derives from projects below:
+- LGPL
+  - [FFmpeg](https://github.com/harlanc/FFmpeg/tree/ijkplayer)
 
 ijkplayer's build scripts are based on or derives from projects below:
 - [gas-preprocessor](http://git.libav.org/?p=gas-preprocessor.git)
