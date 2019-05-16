@@ -139,9 +139,9 @@ static void deal_yuv420p_data(SDL_VoutOverlay* overlay)
 
 static void deal_yuv420sp_data(SDL_VoutOverlay* overlay)
 {
-	int w = overlay->w;
-	int h = overlay->h;
-
+    int w = overlay->w;
+    int h = overlay->h;
+    
 	uint8_t* pixels[2];
 	pixels[0] = overlay->pixels[0];
 	pixels[1] = overlay->pixels[1];
@@ -151,14 +151,29 @@ static void deal_yuv420sp_data(SDL_VoutOverlay* overlay)
 
 	uint8_t *rgba_data[4];
 	int rgba_linesize[4];
+    
 
 	av_image_alloc(yuv_data, yuv_linesize, w, h, AV_PIX_FMT_NV12, 1);
 	av_image_alloc(rgba_data, rgba_linesize, w, h, AV_PIX_FMT_RGBA, 1);
 
-	//maybe need to do align
-	memcpy(yuv_data[0], pixels[0], w*h);
-    memcpy(yuv_data[1], pixels[1], w*h/2);
-    
+	if(w == overlay->pitches[0])
+    {
+        memcpy(yuv_data[0], pixels[0], w*h);
+        memcpy(yuv_data[1], pixels[1], w*h/2);
+    }
+    else
+    {
+        for (int row = 0; row < h; ++row)
+        {
+            memcpy(yuv_data[0] + row * w, pixels[0] + row * overlay->pitches[0], w);
+        }
+        
+        for(int row = 0; row < h / 2; ++row)
+        {
+            memcpy(yuv_data[1] + row * w, pixels[1] + row * overlay->pitches[0], w);
+        }
+    }
+
 
 	if (transform_yuv2rgba(w, h, (const uint8_t**)&yuv_data, yuv_linesize, rgba_data, rgba_linesize, AV_PIX_FMT_NV12))
 		s_player_callback(s_video_index, w, h, rgba_data[0]);
@@ -220,7 +235,7 @@ void create_ios_player()
     s_media_player = ijkmp_ios_create(media_player_msg_loop);
     av_log_set_level(AV_LOG_ERROR);
     
-    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "videotoolbox", 1);  
+    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "videotoolbox", 1);
 }
 
 #elif __ANDROID__
