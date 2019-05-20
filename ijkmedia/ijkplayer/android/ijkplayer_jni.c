@@ -1053,8 +1053,15 @@ LABEL_RETURN:
 }
 
 // ----------------------------------------------------------------------------
-void monstartup(const char *libname);
-void moncleanup(void);
+void monstartup(const char *libname)
+{
+    __android_log_print(ANDROID_LOG_DEBUG, "aprof-fake", "fake-monstartup %s\n", libname);
+}
+
+void moncleanup(void)
+{
+    __android_log_print(ANDROID_LOG_DEBUG, "aprof-fake", "fake-momcleanup\n");
+}
 
 static void
 IjkMediaPlayer_native_profileBegin(JNIEnv *env, jclass clazz, jstring libName)
@@ -1191,6 +1198,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
         return -1;
     }
     assert(env != NULL);
+
+    SDL_JNI_SetJvm(vm);
 
     pthread_mutex_init(&g_clazz.mutex, NULL );
 

@@ -70,8 +70,8 @@ static IJKFF_Pipenode *func_open_video_decoder(IJKFF_Pipeline *pipeline, FFPlaye
     IJKFF_Pipeline_Opaque *opaque = pipeline->opaque;
     IJKFF_Pipenode        *node = NULL;
 
-    if (ffp->mediacodec_all_videos || ffp->mediacodec_avc || ffp->mediacodec_hevc || ffp->mediacodec_mpeg2)
-        node = ffpipenode_create_video_decoder_from_android_mediacodec(ffp, pipeline, opaque->weak_vout);
+    //if (ffp->mediacodec_all_videos || ffp->mediacodec_avc || ffp->mediacodec_hevc || ffp->mediacodec_mpeg2)
+    //    node = ffpipenode_create_video_decoder_from_android_mediacodec(ffp, pipeline, opaque->weak_vout);
     if (!node) {
         node = ffpipenode_create_video_decoder_from_ffplay(ffp);
     }
@@ -97,8 +97,8 @@ static IJKFF_Pipenode *func_init_video_decoder(IJKFF_Pipeline *pipeline, FFPlaye
     IJKFF_Pipeline_Opaque *opaque = pipeline->opaque;
     IJKFF_Pipenode        *node = NULL;
 
-    if (ffp->mediacodec_all_videos || ffp->mediacodec_avc || ffp->mediacodec_hevc || ffp->mediacodec_mpeg2)
-        node = ffpipenode_init_decoder_from_android_mediacodec(ffp, pipeline, opaque->weak_vout);
+    //if (ffp->mediacodec_all_videos || ffp->mediacodec_avc || ffp->mediacodec_hevc || ffp->mediacodec_mpeg2)
+     //   node = ffpipenode_init_decoder_from_android_mediacodec(ffp, pipeline, opaque->weak_vout);
 
     return node;
 }
@@ -108,9 +108,9 @@ static int func_config_video_decoder(IJKFF_Pipeline *pipeline, FFPlayer *ffp)
     IJKFF_Pipeline_Opaque *opaque = pipeline->opaque;
     int                       ret = NULL;
 
-    if (ffp->node_vdec) {
-        ret = ffpipenode_config_from_android_mediacodec(ffp, pipeline, opaque->weak_vout, ffp->node_vdec);
-    }
+    //if (ffp->node_vdec) {
+    //    ret = ffpipenode_config_from_android_mediacodec(ffp, pipeline, opaque->weak_vout, ffp->node_vdec);
+    //}
 
     return ret;
 }
@@ -211,6 +211,7 @@ int ffpipeline_set_surface(JNIEnv *env, IJKFF_Pipeline* pipeline, jobject surfac
     if (!check_ffpipeline(pipeline, __func__))
         return -1;
 
+    /*
     IJKFF_Pipeline_Opaque *opaque = pipeline->opaque;
     if (!opaque->surface_mutex)
         return -1;
@@ -236,7 +237,7 @@ int ffpipeline_set_surface(JNIEnv *env, IJKFF_Pipeline* pipeline, jobject surfac
             }
         }
     }
-    ffpipeline_unlock_surface(pipeline);
+    ffpipeline_unlock_surface(pipeline); */
 
     return 0;
 }
