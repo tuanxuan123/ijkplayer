@@ -241,6 +241,8 @@ void create_ios_player()
 #elif __ANDROID__
 void create_android_player()
 {
+	av_log_set_level(AV_LOG_ERROR);
+	
 	s_media_player = ijkmp_android_create(media_player_msg_loop);
 	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "mediacodec", 0);
 	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "opensles", 1);  
