@@ -53,7 +53,6 @@ int nanosleep(const struct timespec *, struct timespec *) __DARWIN_ALIAS_C(nanos
 
 
 
-
 void SDL_Delay(Uint32 ms)
 {
     int was_error;

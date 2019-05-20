@@ -25,7 +25,7 @@
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
 
-#include "ijkavformat/ijkavformat.h"
+#include "ijkavformat.h"
 #include "ijkplayer/ijkavutil/opt.h"
 #include "ijkplayer/ijkavutil/ijkutils.h"
 
