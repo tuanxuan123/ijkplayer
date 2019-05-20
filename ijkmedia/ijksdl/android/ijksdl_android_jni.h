@@ -54,6 +54,7 @@
 #define IJK_API_23_M                        23  // 6.0
 
 JavaVM *SDL_JNI_GetJvm();
+void    SDL_JNI_SetJvm(JavaVM *vm);
 
 jint    SDL_JNI_SetupThreadEnv(JNIEnv **p_env);
 void    SDL_JNI_DetachThreadEnv();

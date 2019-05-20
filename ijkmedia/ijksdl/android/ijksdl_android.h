@@ -30,7 +30,8 @@
 #include "ijksdl_aout_android_audiotrack.h"
 #include "ijksdl_aout_android_opensles.h"
 
-#include "ijksdl_vout_android_nativewindow.h"
-#include "ijksdl_vout_android_surface.h"
+//#include "ijksdl_vout_android_nativewindow.h"
+//#include "ijksdl_vout_android_surface.h"
+#include "ijksdl_vout_android_null.h"
 
 #endif

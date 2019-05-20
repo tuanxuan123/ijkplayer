@@ -94,9 +94,6 @@ static bool is_init_mutex = false;
 #include "ijkplayer.h"
 
 
-#if defined(__ANDROID__)
-#include "ijksoundtouch/ijksoundtouch_wrap.h"
-#endif
 
 #ifndef AV_CODEC_FLAG2_FAST
 #define AV_CODEC_FLAG2_FAST CODEC_FLAG2_FAST
@@ -1082,11 +1079,7 @@ static void stream_close(FFPlayer *ffp)
     sws_freeContext(is->sub_convert_ctx);
 #endif
 
-#if defined(__ANDROID__)
-    if (ffp->soundtouch_enable && is->handle != NULL) {
-        ijk_soundtouch_destroy(is->handle);
-    }
-#endif
+
     if (ffp->get_img_info) {
         if (ffp->get_img_info->frame_img_convert_ctx) {
             sws_freeContext(ffp->get_img_info->frame_img_convert_ctx);
@@ -2624,7 +2617,7 @@ reload:
         is->audio_buf = is->audio_buf1;
         int bytes_per_sample = av_get_bytes_per_sample(is->audio_tgt.fmt);
         resampled_data_size = len2 * is->audio_tgt.channels * bytes_per_sample;
-#if defined(__ANDROID__)
+/*#if defined(__ANDROID__)
         if (ffp->soundtouch_enable && ffp->pf_playback_rate != 1.0f && !is->abort_request) {
             av_fast_malloc(&is->audio_new_buf, &is->audio_new_buf_size, out_size * translate_time);
             for (int i = 0; i < (resampled_data_size / 2); i++)
@@ -2642,7 +2635,7 @@ reload:
                 goto reload;
             }
         }
-#endif
+#endif */
     } else {
         is->audio_buf = af->frame->data[0];
         resampled_data_size = data_size;
@@ -3732,11 +3725,7 @@ static VideoState *stream_open(FFPlayer *ffp, const char *filename, AVInputForma
     is->iformat = iformat;
     is->ytop    = 0;
     is->xleft   = 0;
-#if defined(__ANDROID__)
-    if (ffp->soundtouch_enable) {
-        is->handle = ijk_soundtouch_create();
-    }
-#endif
+
 
     /* start video display */
     if (frame_queue_init(&is->pictq, &is->videoq, ffp->pictq_size, 1) < 0)

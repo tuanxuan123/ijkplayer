@@ -40,6 +40,18 @@ JavaVM *SDL_JNI_GetJvm()
     return g_jvm;
 }
 
+void SDL_JNI_SetJvm(JavaVM *vm)
+{
+    JNIEnv* env = NULL;
+
+    g_jvm = vm;
+    if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+        return;
+    }
+
+    J4A_LoadAll__catchAll(env);
+}
+
 static void SDL_JNI_ThreadDestroyed(void* value)
 {
     JNIEnv *env = (JNIEnv*) value;
@@ -196,22 +208,3 @@ int SDL_Android_GetApiLevel()
 }
 
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
-{
-    int retval;
-    JNIEnv* env = NULL;
-
-    g_jvm = vm;
-    if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-        return -1;
-    }
-
-    retval = J4A_LoadAll__catchAll(env);
-    JNI_CHECK_RET(retval == 0, env, NULL, NULL, -1);
-
-    return JNI_VERSION_1_4;
-}
-
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *jvm, void *reserved)
-{
-}
