@@ -1,5 +1,5 @@
 android project
+using android studio to open videoplayer project
 
-videoplayer project is the same with ijkplayer
+videoplayer is the project which using the ijkplayer's code to build videoplayer.so and uses vulkan to draw video.
 
-/demo shows how to use videoplayer 
