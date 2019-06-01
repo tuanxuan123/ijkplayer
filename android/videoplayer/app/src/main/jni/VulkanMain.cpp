@@ -1136,7 +1136,7 @@ bool VulkanDrawFrame(void) {
   CALL_VK(vkAcquireNextImageKHR(device.device_, swapchain.swapchain_,
                                 UINT64_MAX, render.semaphore_, VK_NULL_HANDLE,
                                 &nextIndex));
-  CALL_VK(vkResetFences(device.device_, 1, &render.fence_));
+  //CALL_VK(vkResetFences(device.device_, 1, &render.fence_));
 
   VkPipelineStageFlags waitStageMask =
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -1150,8 +1150,7 @@ bool VulkanDrawFrame(void) {
                               .signalSemaphoreCount = 0,
                               .pSignalSemaphores = nullptr};
   CALL_VK(vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_));
-  CALL_VK(
-      vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
+  //CALL_VK(vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
 
   //LOGI("Drawing frames......");
 

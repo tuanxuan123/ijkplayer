@@ -79,7 +79,7 @@ add_library(videoplayer SHARED
         ${IJKPLAYER_SRC_DIR}/android/ijkplayer_android.c
         ${IJKPLAYER_SRC_DIR}/android/ijkplayer_jni.c
         ${IJKPLAYER_SRC_DIR}/android/pipeline/ffpipeline_android.c
-        #${IJKPLAYER_SRC_DIR}/android/pipeline/ffpipenode_android_mediacodec_vdec.c
+        ${IJKPLAYER_SRC_DIR}/android/pipeline/ffpipenode_native_mediacodec_vdec.c
 
 
         ${IJKPLAYER_SRC_DIR}/ijkavutil/ijkdict.c
@@ -119,6 +119,9 @@ target_include_directories(videoplayer PRIVATE
 target_include_directories(videoplayer PRIVATE
         ${IJKPLAYER_SRC_DIR}/)
 
+target_include_directories(videoplayer PRIVATE
+        ${IJKSDL_SRC_DIR}/)
+
 
 include_directories(${WRAPPER_DIR})
 
@@ -136,9 +139,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror \
                      -DVK_USE_PLATFORM_ANDROID_KHR")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
-#减小relaese so体积
+#减小release so体积
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
 
-target_link_libraries(videoplayer ${log-lib} ijkffmpeg OpenSLES)
+target_link_libraries(videoplayer ${log-lib} ijkffmpeg OpenSLES mediandk)
 
 target_link_libraries(videodemo app-glue ${log-lib} android ijkffmpeg videoplayer)
