@@ -78,7 +78,7 @@ add_library(videoplayer SHARED
         ${IJKPLAYER_SRC_DIR}/android/ffmpeg_api_jni.c
         ${IJKPLAYER_SRC_DIR}/android/ijkplayer_android.c
         ${IJKPLAYER_SRC_DIR}/android/ijkplayer_jni.c
-        ${IJKPLAYER_SRC_DIR}/android/pipeline/ffpipeline_android.c
+        ${IJKPLAYER_SRC_DIR}/android/pipeline/ffpipeline_native_android.c
         ${IJKPLAYER_SRC_DIR}/android/pipeline/ffpipenode_native_mediacodec_vdec.c
 
 

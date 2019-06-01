@@ -15,7 +15,6 @@
 #include "ijkplayer_ios.h"
 #elif __ANDROID__
 #include "android/ijkplayer_android.h"
- 	
 #endif
 
 
@@ -48,7 +47,7 @@ static void frame_update_callback(SDL_VoutOverlay* overlay)
 		case SDL_FCC_RV16:      ALOGE("not support SDL_FCC_RV16\n"); break;
 		case SDL_FCC_RV24:      ALOGE("not support SDL_FCC_RV24\n"); break;
 		case SDL_FCC_RV32:      ALOGE("not support SDL_FCC_RV32\n"); break;
-		default:				ALOGE("can not match format"); break;
+		default:				ALOGE("can not match format: %d\n", overlay->format); break;
 	}
 	
 }
@@ -244,8 +243,8 @@ void create_android_player()
 	av_log_set_level(AV_LOG_ERROR);
 	
 	s_media_player = ijkmp_android_create(media_player_msg_loop);
-	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "mediacodec", 0);
-	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "opensles", 1);  
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "mediacodec", 1);
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "opensles", 1);
 }
 
 #endif
