@@ -25,12 +25,13 @@
 #include "ijksdl_android_jni.h"
 
 #include <unistd.h>
+#include <sys/system_properties.h>
 #include "j4a/class/android/os/Build.h"
 #include "ijksdl_inc_internal_android.h"
 #include "ijksdl_codec_android_mediaformat_java.h"
 #include "ijksdl_codec_android_mediacodec_java.h"
 
-static JavaVM *g_jvm;
+static JavaVM *g_jvm = NULL;
 
 static pthread_key_t g_thread_key;
 static pthread_once_t g_key_once = PTHREAD_ONCE_INIT;
@@ -95,6 +96,9 @@ jint SDL_JNI_SetupThreadEnv(JNIEnv **p_env)
 void SDL_JNI_DetachThreadEnv()
 {
     JavaVM *jvm = g_jvm;
+    
+    if(!jvm)
+        return;
 
     ALOGI("%s: [%d]\n", __func__, (int)gettid());
 
@@ -188,7 +192,7 @@ int SDL_Android_GetApiLevel()
     static int SDK_INT = 0;
     if (SDK_INT > 0)
         return SDK_INT;
-
+#if 0
     JNIEnv *env = NULL;
     if (JNI_OK != SDL_JNI_SetupThreadEnv(&env)) {
         ALOGE("SDL_Android_GetApiLevel: SetupThreadEnv failed");
@@ -198,13 +202,13 @@ int SDL_Android_GetApiLevel()
     SDK_INT = J4AC_android_os_Build__VERSION__SDK_INT__get__catchAll(env);
     ALOGI("API-Level: %d\n", SDK_INT);
     return SDK_INT;
-#if 0
-    char value[PROP_VALUE_MAX];
-    memset(value, 0, sizeof(value));
+#endif
+
+    char value[32] = {0};
     __system_property_get("ro.build.version.sdk", value);
     SDK_INT = atoi(value);
     return SDK_INT;
-#endif
+
 }
 
 

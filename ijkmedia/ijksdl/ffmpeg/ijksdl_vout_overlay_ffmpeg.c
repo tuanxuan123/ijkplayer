@@ -159,120 +159,36 @@ static int func_unlock(SDL_VoutOverlay *overlay)
 
 static int func_fill_frame(SDL_VoutOverlay *overlay, const AVFrame *frame)
 {
-    assert(overlay);
+    if(!overlay){
+        ALOGE("error: func_fill_frame overlay is NULL");
+        return -1;
+    }
+
     SDL_VoutOverlay_Opaque *opaque = overlay->opaque;
-    AVFrame swscale_dst_pic = { { 0 } };
 
     av_frame_unref(opaque->linked_frame);
 
-    int need_swap_uv = 0;
-    int use_linked_frame = 0;
-    enum AVPixelFormat dst_format = AV_PIX_FMT_NONE;
-    switch (overlay->format) {
-        case SDL_FCC_YV12:
-            need_swap_uv = 1;
-            // no break;
-        case SDL_FCC_I420:
-            if (frame->format == AV_PIX_FMT_YUV420P || frame->format == AV_PIX_FMT_YUVJ420P) {
-                // ALOGE("direct draw frame");
-                use_linked_frame = 1;
-                dst_format = frame->format;
-            } else {
-                // ALOGE("copy draw frame");
-                dst_format = AV_PIX_FMT_YUV420P;
-            }
+    switch (frame->format) {
+        case AV_PIX_FMT_YUV420P:
+        case AV_PIX_FMT_YUVJ420P:
+            if(overlay->format != SDL_FCC_YV12)
+                overlay->format = SDL_FCC_I420;
             break;
-        case SDL_FCC_I444P10LE:
-            if (frame->format == AV_PIX_FMT_YUV444P10LE) {
-                // ALOGE("direct draw frame");
-                use_linked_frame = 1;
-                dst_format = frame->format;
-            } else {
-                // ALOGE("copy draw frame");
-                dst_format = AV_PIX_FMT_YUV444P10LE;
-            }
+        case AV_PIX_FMT_NV12:
+            overlay->format = SDL_FCC_NV12;
             break;
-        case SDL_FCC_RV32:
-            dst_format = AV_PIX_FMT_0BGR32;
-            break;
-        case SDL_FCC_RV24:
-            dst_format = AV_PIX_FMT_RGB24;
-            break;
-        case SDL_FCC_RV16:
-            dst_format = AV_PIX_FMT_RGB565;
-            break;
+
         default:
-            ALOGE("SDL_VoutFFmpeg_ConvertPicture: unexpected overlay format %s(%d)",
-                  (char*)&overlay->format, overlay->format);
-            return -1;
+            ALOGE("SDL_VoutFFmpeg_ConvertPicture: unexpected frame format: %d", frame->format);
     }
 
 
-    // setup frame
-    if (use_linked_frame) {
-        // linked frame
-        av_frame_ref(opaque->linked_frame, frame);
 
-        overlay_fill(overlay, opaque->linked_frame, opaque->planes);
-
-        if (need_swap_uv)
-            FFSWAP(Uint8*, overlay->pixels[1], overlay->pixels[2]);
-    } else {
-        // managed frame
-        AVFrame* managed_frame = opaque_obtain_managed_frame_buffer(opaque);
-        if (!managed_frame) {
-            ALOGE("OOM in opaque_obtain_managed_frame_buffer");
-            return -1;
-        }
-
-        overlay_fill(overlay, opaque->managed_frame, opaque->planes);
-
-        // setup frame managed
-        for (int i = 0; i < overlay->planes; ++i) {
-            swscale_dst_pic.data[i] = overlay->pixels[i];
-            swscale_dst_pic.linesize[i] = overlay->pitches[i];
-        }
-
-        if (need_swap_uv)
-            FFSWAP(Uint8*, swscale_dst_pic.data[1], swscale_dst_pic.data[2]);
-    }
+    // linked frame
+    av_frame_ref(opaque->linked_frame, frame);
+    overlay_fill(overlay, opaque->linked_frame, opaque->planes);
 
 
-    // swscale / direct draw
-    /*
-     ALOGE("ijk_image_convert w=%d, h=%d, df=%d, dd=%d, dl=%d, sf=%d, sd=%d, sl=%d",
-     (int)frame->width,
-     (int)frame->height,
-     (int)dst_format,
-     (int)swscale_dst_pic.data[0],
-     (int)swscale_dst_pic.linesize[0],
-     (int)frame->format,
-     (int)(const uint8_t**) frame->data,
-     (int)frame->linesize);
-     */
-    if (use_linked_frame) {
-        // do nothing
-    } else if (ijk_image_convert(frame->width, frame->height,
-                                 dst_format, swscale_dst_pic.data, swscale_dst_pic.linesize,
-                                 frame->format, (const uint8_t**) frame->data, frame->linesize)) {
-        opaque->img_convert_ctx = sws_getCachedContext(opaque->img_convert_ctx,
-                                                       frame->width, frame->height, frame->format, frame->width, frame->height,
-                                                       dst_format, opaque->sws_flags, NULL, NULL, NULL);
-        if (opaque->img_convert_ctx == NULL) {
-            ALOGE("sws_getCachedContext failed");
-            return -1;
-        }
-
-        sws_scale(opaque->img_convert_ctx, (const uint8_t**) frame->data, frame->linesize,
-                  0, frame->height, swscale_dst_pic.data, swscale_dst_pic.linesize);
-
-        if (!opaque->no_neon_warned) {
-            opaque->no_neon_warned = 1;
-            ALOGE("non-neon image convert %s -> %s", av_get_pix_fmt_name(frame->format), av_get_pix_fmt_name(dst_format));
-        }
-    }
-    
-    // TODO: 9 draw black if overlay is larger than screen
     return 0;
 }
 

@@ -50,9 +50,9 @@ static void *SDL_RunThread(void *data)
 #endif
 
     thread->retval = thread->func(thread->data);
-#ifdef __ANDROID__
-    SDL_JNI_DetachThreadEnv();
-#endif
+//#ifdef __ANDROID__
+//    SDL_JNI_DetachThreadEnv();
+//#endif
     return NULL;
 }
 
@@ -103,7 +103,7 @@ int SDL_SetThreadPriority(SDL_ThreadPriority priority)
 
 void SDL_WaitThread(SDL_Thread *thread, int *status)
 {
-    assert(thread);
+    //assert(thread);
     if (!thread)
         return;
 
@@ -115,7 +115,7 @@ void SDL_WaitThread(SDL_Thread *thread, int *status)
 
 void SDL_DetachThread(SDL_Thread *thread)
 {
-    assert(thread);
+    //sassert(thread);
     if (!thread)
         return;
 
