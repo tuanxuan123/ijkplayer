@@ -31,7 +31,7 @@ struct IJKFF_Pipenode_Opaque {
 
 static void func_destroy(IJKFF_Pipenode *node)
 {
-    // do nothing
+    ALOGI("====== IJKFF_Pipenode func_destroy ========");
 }
 
 static int func_run_sync(IJKFF_Pipenode *node)

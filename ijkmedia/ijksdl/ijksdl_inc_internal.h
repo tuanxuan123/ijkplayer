@@ -31,5 +31,6 @@
 #include "ijksdl_stdinc.h"
 
 #define SDLTRACE ALOGD
+#define USING_MEDIACODEC 999999
 
 #endif

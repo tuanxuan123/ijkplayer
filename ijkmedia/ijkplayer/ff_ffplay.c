@@ -4070,6 +4070,7 @@ FFPlayer *ffp_create()
     ffp->meta = ijkmeta_create();
 
     av_opt_set_defaults(ffp);
+    ffp->use_mediacodec = 0;
 
     return ffp;
 }

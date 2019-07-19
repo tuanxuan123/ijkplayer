@@ -143,6 +143,11 @@ static void overlay_fill(SDL_VoutOverlay *overlay, AVFrame *frame, int planes)
         overlay->pixels[i] = frame->data[i];
         overlay->pitches[i] = frame->linesize[i];
     }
+
+    if(frame->flags != USING_MEDIACODEC){
+        overlay->pitches[1] = overlay->h;
+    }
+
 }
 
 static int func_lock(SDL_VoutOverlay *overlay)
@@ -159,6 +164,7 @@ static int func_unlock(SDL_VoutOverlay *overlay)
 
 static int func_fill_frame(SDL_VoutOverlay *overlay, const AVFrame *frame)
 {
+
     if(!overlay){
         ALOGE("error: func_fill_frame overlay is NULL");
         return -1;
@@ -171,8 +177,7 @@ static int func_fill_frame(SDL_VoutOverlay *overlay, const AVFrame *frame)
     switch (frame->format) {
         case AV_PIX_FMT_YUV420P:
         case AV_PIX_FMT_YUVJ420P:
-            if(overlay->format != SDL_FCC_YV12)
-                overlay->format = SDL_FCC_I420;
+            overlay->format = SDL_FCC_I420;
             break;
         case AV_PIX_FMT_NV12:
             overlay->format = SDL_FCC_NV12;
