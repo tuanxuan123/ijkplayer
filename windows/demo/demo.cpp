@@ -121,9 +121,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	
 
-	h5_video_init(UpdateTextureData, MessageCallback);
+	h5_video_init(UpdateTextureData, MessageCallback, FMT_RGBA);
 	h5_video_play("http://1253131631.vod2.myqcloud.com/26f327f9vodgzp1253131631/bca0bd469031868222923928043/f0.mp4", false, 0);
-
+	//h5_video_play("C:/Users/xanderdeng/Desktop/videosrc/3.mp4", true, 0);
 
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
