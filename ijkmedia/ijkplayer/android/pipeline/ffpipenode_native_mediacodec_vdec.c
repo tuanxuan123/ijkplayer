@@ -167,7 +167,7 @@ static int feed_input_buffer(IJKFF_Pipenode *node, int *enqueue_count)
 
     }while(ffp_is_flush_packet(&pkt) || d->queue->serial != d->pkt_serial);
 
-    av_packet_split_side_data(&pkt);
+    //av_packet_split_side_data(&pkt);
     av_packet_unref(&d->pkt);
 
     d->pkt_temp = d->pkt = pkt;
@@ -281,6 +281,7 @@ static int enqueue_thread_func(void *arg)
             return ret;
         }
     }
+
     return 0;
 }
 
@@ -311,6 +312,7 @@ static int drain_output_buffer_l(IJKFF_Pipenode *node, int64_t timeUs, int *dequ
         uint8_t *buffer = AMediaCodec_getOutputBuffer(opaque->ndk_codec, output_buffer_index, &size);
 
         if(buffer){
+
             AMediaFormat *output_format = AMediaCodec_getOutputFormat(opaque->ndk_codec);
 
             int color_format = 0;
@@ -332,40 +334,40 @@ static int drain_output_buffer_l(IJKFF_Pipenode *node, int64_t timeUs, int *dequ
 
             frame->width = width;
             frame->height = height;
+            frame->sample_aspect_ratio = opaque->codecpar->sample_aspect_ratio;
+            frame->pts = av_rescale_q(bufferInfo.presentationTimeUs, AV_TIME_BASE_Q, is->video_st->time_base);
+
+            int frame_size = width * height;
 
             if(color_format == COLOR_FormatYUV420P) {  //yuv420p
                 frame->format = AV_PIX_FMT_YUV420P;
                 av_frame_get_buffer(frame, 1);
 
-                memcpy(frame->data[0], buffer, frame->width*frame->height);
-                memcpy(frame->data[1], buffer+frame->width*frame->height, frame->width*frame->height/4);
-                memcpy(frame->data[2], buffer+frame->width*frame->height*5/4, frame->width*frame->height/4);
+                memcpy(frame->data[0], buffer, frame_size);
+                memcpy(frame->data[1], buffer + frame_size, frame_size/4);
+                memcpy(frame->data[2], buffer + frame_size*5/4, frame_size/4);
 
-                frame->linesize[0] = frame->width;
-                frame->linesize[1] = frame->height;
-
-                frame->sample_aspect_ratio = opaque->codecpar->sample_aspect_ratio;
-
-                frame->pts = av_rescale_q(bufferInfo.presentationTimeUs, AV_TIME_BASE_Q, is->video_st->time_base);
 
                 *got_frame = 1;
             } else if(color_format == COLOR_FormatYUV420SP) {   //yuv420sp
                 frame->format = AV_PIX_FMT_NV12;
                 av_frame_get_buffer(frame, 1);
 
-                memcpy(frame->data[0], buffer, frame->width*frame->height);
-                memcpy(frame->data[1], buffer+frame->width*frame->height, frame->width*frame->height/2);
-
-                frame->linesize[0] = frame->width;
-                frame->linesize[1] = frame->height;
-
-                frame->sample_aspect_ratio = opaque->codecpar->sample_aspect_ratio;
-
-                frame->pts = av_rescale_q(bufferInfo.presentationTimeUs, AV_TIME_BASE_Q, is->video_st->time_base);
+                memcpy(frame->data[0], buffer, frame_size);
+                memcpy(frame->data[1], buffer + frame_size, frame_size/2);
 
                 *got_frame = 1;
 
             }
+            else {
+                ALOGE("not suport color_format: %d\n", color_format);
+            }
+
+            frame->linesize[0] = width;
+            frame->linesize[1] = height;
+            frame->linesize[2] = width / 2;
+            frame->width = opaque->codecpar->width;
+            frame->height = opaque->codecpar->height;
 
         }
 
@@ -485,6 +487,7 @@ static int func_run_sync(IJKFF_Pipenode *node)
     double                 duration;
     double                 pts;
 
+
     if(!opaque->ndk_codec)
         return ffp_video_thread(ffp);
 
@@ -498,6 +501,8 @@ static int func_run_sync(IJKFF_Pipenode *node)
         ret = -1;
         goto fail;
     }
+
+    ffp->use_mediacodec = 1;
 
     while(!q->abort_request){
 
@@ -548,9 +553,10 @@ static int func_run_sync(IJKFF_Pipenode *node)
                     }
                 }
             }
-
+            frame->flags = USING_MEDIACODEC;
             ffp_queue_picture(ffp, frame, pts, duration, av_frame_get_pkt_pos(frame), is->viddec.pkt_serial);
             av_frame_unref(frame);
+
         }
 
     }
@@ -570,6 +576,8 @@ fail:
         AMediaCodec_delete(opaque->ndk_codec);
         opaque->ndk_codec = NULL;
     }
+
+    return ret;
 
 }
 
@@ -601,8 +609,7 @@ static int recreate_format_l(IJKFF_Pipenode *node)
     AMediaFormat_setString(opaque->input_format, AMEDIAFORMAT_KEY_MIME, opaque->mcc.mime_type);
     AMediaFormat_setInt32(opaque->input_format, AMEDIAFORMAT_KEY_WIDTH, opaque->codecpar->width);
     AMediaFormat_setInt32(opaque->input_format, AMEDIAFORMAT_KEY_HEIGHT, opaque->codecpar->height);
-    //AMediaFormat_setInt32(opaque->input_format, AMEDIAFORMAT_KEY_FRAME_RATE, 30);
-    //AMediaFormat_setInt32(opaque->input_format, AMEDIAFORMAT_KEY_MAX_INPUT_SIZE, opaque->codecpar->width * opaque->codecpar->height * 2);
+
 
     if (opaque->codecpar->extradata && opaque->codecpar->extradata_size > 0) {
         if ((opaque->codecpar->codec_id == AV_CODEC_ID_H264 && opaque->codecpar->extradata[0] == 1)
