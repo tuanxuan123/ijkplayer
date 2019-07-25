@@ -255,6 +255,8 @@ static int feed_input_buffer(IJKFF_Pipenode *node, int *enqueue_count)
         opaque->input_packet_count++;
         if (enqueue_count)
             ++*enqueue_count;
+    } else {
+        d->finished = d->pkt_serial;  //video finish
     }
 
 
