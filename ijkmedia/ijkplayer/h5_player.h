@@ -1,10 +1,8 @@
 #ifndef IJKPLAYER_H5_INTERFACE_PLAYER_H
 #define IJKPLAYER_H5_INTERFACE_PLAYER_H
 
- #include <stdbool.h>
 
 typedef  void (*h5_msg_callback)(int index, int event, int arg1, int arg2, const char* msg);
-
 typedef  void(*h5_video_callback)(int index, int w, int h, unsigned char *data);
 
 enum Pixel_Format {
