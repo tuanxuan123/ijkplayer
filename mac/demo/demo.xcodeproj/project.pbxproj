@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ED19AA4E22E98C960000A481 /* h5_player.h in Headers */ = {isa = PBXBuildFile; fileRef = ED19AA4D22E98C960000A481 /* h5_player.h */; };
 		ED3BBD1D225D8EDA00A2168F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = ED3BBD1C225D8EDA00A2168F /* AppDelegate.m */; };
 		ED3BBD20225D8EDA00A2168F /* Renderer.m in Sources */ = {isa = PBXBuildFile; fileRef = ED3BBD1F225D8EDA00A2168F /* Renderer.m */; };
 		ED3BBD23225D8EDA00A2168F /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ED3BBD22225D8EDA00A2168F /* GameViewController.m */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		ED19AA4D22E98C960000A481 /* h5_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = h5_player.h; path = ../../../ijkmedia/ijkplayer/h5_player.h; sourceTree = "<group>"; };
 		ED3BBD18225D8EDA00A2168F /* demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED3BBD1B225D8EDA00A2168F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		ED3BBD1C225D8EDA00A2168F /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 		ED3BBD1A225D8EDA00A2168F /* demo */ = {
 			isa = PBXGroup;
 			children = (
+				ED19AA4D22E98C960000A481 /* h5_player.h */,
 				ED3BBD1B225D8EDA00A2168F /* AppDelegate.h */,
 				ED3BBD1C225D8EDA00A2168F /* AppDelegate.m */,
 				ED3BBD1E225D8EDA00A2168F /* Renderer.h */,
@@ -103,6 +106,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED19AA4E22E98C960000A481 /* h5_player.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

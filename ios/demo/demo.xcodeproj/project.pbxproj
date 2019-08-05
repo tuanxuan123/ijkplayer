@@ -19,7 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		ED2549B32282880D00A8C73A /* h5_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = h5_player.h; sourceTree = "<group>"; };
+		ED19AA5122E990550000A481 /* h5_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = h5_player.h; path = ../../../ijkmedia/ijkplayer/h5_player.h; sourceTree = "<group>"; };
 		ED2549B42282ACD800A8C73A /* libvideoplayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libvideoplayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED2549B62282AE3800A8C73A /* libavformat.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavformat.a; path = ../build/universal/lib/libavformat.a; sourceTree = "<group>"; };
 		ED2549B72282AE3800A8C73A /* libavutil.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavutil.a; path = ../build/universal/lib/libavutil.a; sourceTree = "<group>"; };
@@ -101,7 +101,7 @@
 		EDE2197322801290008FAFF8 /* demo */ = {
 			isa = PBXGroup;
 			children = (
-				ED2549B32282880D00A8C73A /* h5_player.h */,
+				ED19AA5122E990550000A481 /* h5_player.h */,
 				EDE2197422801290008FAFF8 /* AppDelegate.h */,
 				EDE2197522801290008FAFF8 /* AppDelegate.m */,
 				EDE2197722801290008FAFF8 /* Renderer.h */,

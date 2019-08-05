@@ -56,7 +56,7 @@ void MessageCallback(int index, int event, int arg1, int arg2, const char* msg)
     _view.delegate = _renderer;
     
     renderObj = _renderer;
-    h5_video_init(UpdateTextureData, MessageCallback);
+    h5_video_init(UpdateTextureData, MessageCallback, FMT_RGBA);
     h5_video_play("http://1253131631.vod2.myqcloud.com/26f327f9vodgzp1253131631/bca0bd469031868222923928043/f0.mp4", 0, 0);
 }
 
