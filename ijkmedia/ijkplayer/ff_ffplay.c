@@ -1312,8 +1312,8 @@ static double compute_target_delay(FFPlayer *ffp, double delay, VideoState *is)
     }
 
     if (ffp) {
-        ffp->stat.avdelay = delay;
-        ffp->stat.avdiff  = diff;
+        ffp->stat.avdelay = (float)delay;
+        ffp->stat.avdiff  = (float)diff;
     }
 #ifdef FFP_SHOW_AUDIO_DELAY
     av_log(NULL, AV_LOG_TRACE, "video: delay=%0.3f A-V=%f\n",

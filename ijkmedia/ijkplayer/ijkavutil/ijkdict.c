@@ -40,13 +40,13 @@ int ijk_av_dict_count(const IjkAVDictionary *m)
 IjkAVDictionaryEntry *ijk_av_dict_get(const IjkAVDictionary *m, const char *key,
                                const IjkAVDictionaryEntry *prev, int flags)
 {
-    unsigned int i, j;
+    int i, j;
 
     if (!m)
         return NULL;
 
     if (prev)
-        i = prev - m->elems + 1;
+        i = (int)(prev - m->elems + 1);
     else
         i = 0;
 
@@ -127,8 +127,12 @@ int ijk_av_dict_set(IjkAVDictionary **pm, const char *key, const char *value,
                 goto err_out;
 #ifdef _WIN32
 			strncat(newval, oldval, len);
+			//strncat_s(newval, len, oldval, len);
+
 			ijk_av_freep(&oldval);
+
 			strncat(newval, copy_value, len);
+			//strncat_s(newval, len, copy_value, len);
 #else
 			strlcat(newval, oldval, len);
 			ijk_av_freep(&oldval);
