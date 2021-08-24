@@ -11,4 +11,5 @@ h5_video_stop @8
 h5_video_destroy @9
 h5_video_get_duration @10
 h5_video_get_position @11
-
+h5_video_set_cache_path @12
+h5_video_destory_cache @13

@@ -37,7 +37,7 @@ typedef struct Context {
 static int ijklongurl_open(URLContext *h, const char *arg, int flags, AVDictionary **options)
 {
     Context *c = h->priv_data;
-
+    printf("%x %s\n", c->url, *c->url);
     if (!c->url || !*c->url)
         return AVERROR_EXTERNAL;
 

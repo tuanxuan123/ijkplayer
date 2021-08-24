@@ -33,7 +33,7 @@
 #include "mpeg4_esds.h"
 #include "../ijkplayer_android_def.h"
 #include "../../../ijksdl/ffmpeg/ijksdl_inc_ffmpeg.h"
-#include "../../../../../../Library/Android/sdk/ndk-bundle/sources/android/support/include/stdint.h"
+//#include "../../../../../../Library/Android/sdk/ndk-bundle/sources/android/support/include/stdint.h"
 
 
 #define AMC_INPUT_TIMEOUT_US  (100 * 1000)

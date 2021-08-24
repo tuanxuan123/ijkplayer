@@ -599,7 +599,6 @@ OBJS-$(CONFIG_TLS_SECURETRANSPORT_PROTOCOL) += tls_securetransport.o tls.o
 OBJS-$(CONFIG_UDP_PROTOCOL)              += udp.o
 OBJS-$(CONFIG_UDPLITE_PROTOCOL)          += udp.o
 OBJS-$(CONFIG_UNIX_PROTOCOL)             += unix.o
-
 # libavdevice dependencies
 OBJS-$(CONFIG_IEC61883_INDEV)            += dv.o
 

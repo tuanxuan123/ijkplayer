@@ -48,6 +48,8 @@ const AVOption *av_opt_next(const void *obj, const AVOption *last)
     if (!obj)
         return NULL;
     class = *(const AVClass**)obj;
+    //if(class && class->option && class->option[0].name)
+    //    av_log(NULL, AV_LOG_ERROR, "av_opt_next: %s\n",class->option[0].name);
     if (!last && class && class->option && class->option[0].name)
         return class->option;
     if (last && last[1].name)
@@ -1296,15 +1298,14 @@ void av_opt_set_defaults(void *s)
 void av_opt_set_defaults2(void *s, int mask, int flags)
 {
     const AVOption *opt = NULL;
+    //av_log(NULL, AV_LOG_ERROR, "here\n");
     while ((opt = av_opt_next(s, opt))) {
         void *dst = ((uint8_t*)s) + opt->offset;
-
         if ((opt->flags & mask) != flags)
             continue;
 
         if (opt->flags & AV_OPT_FLAG_READONLY)
             continue;
-
         switch (opt->type) {
             case AV_OPT_TYPE_CONST:
                 /* Nothing to be done here */

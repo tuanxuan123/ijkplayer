@@ -1,19 +1,29 @@
 
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <errno.h>
+
 #include "ijkplayer_internal.h"
-#include "h5_player.h"
 #include "ff_ffmsg.h"
-
-
+#include "h5_player.h"
+#define  _CRT_SECURE_NO_WARNINGS
 #ifdef _WIN32
-
 #include "windows/ijkplayer_windows.h"
-
 #elif TARGET_OS_MAC
 
 #include "ijkplayer_mac.h"
 #elif TARGET_OS_IPHONE
 #include "ijkplayer_ios.h"
 #elif __ANDROID__
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
+#include <dirent.h>
 #include "android/ijkplayer_android.h"
 #endif
 
@@ -28,7 +38,8 @@ static enum AVPixelFormat   s_pix_format = AV_PIX_FMT_RGB24;
 static MessageQueue 		s_player_msg_queue;
 static void deal_yuv420p_data(SDL_VoutOverlay* overlay);
 static void deal_yuv420sp_data(SDL_VoutOverlay* overlay);
-
+//add
+static char*				cache_path = NULL;
 
 static void frame_update_callback(SDL_VoutOverlay* overlay)
 {
@@ -288,8 +299,6 @@ void h5_video_init(h5_video_callback video_func, h5_msg_callback msg_func, enum 
             break;
     }
 
-
-
 	if (!s_global_init)
 	{
 		ijkmp_global_init();
@@ -300,7 +309,180 @@ void h5_video_init(h5_video_callback video_func, h5_msg_callback msg_func, enum 
 
 }
 
+//add function-------------------------------------------------------------------------------
+//设置缓存地址，此为外部调用接口。
+void  h5_video_set_cache_path(char* value) {
+	if (cache_path) {
+		free(cache_path);
+		cache_path = NULL;
+	}
+	cache_path = malloc(sizeof(char) * 256);
+	strncpy(cache_path, value, strlen(value) + 1);
+}
+//根据设置的缓存地址，设置播放的缓存option。
+void  h5_video_set_cache_pathl(const char* url, char* value) {
+	char* filename = strrchr(url, '/');
+	char* filetype = strrchr(filename, '.');
+	char cache_path[256];
+	strncpy(cache_path, value, strlen(value) + 1);  //+1加上'\0'
+	strncat(cache_path, filename, strlen(filename) - strlen(filetype));
+	strcat(cache_path, CACHE_DATA_TYPE);
+	printf("The cache file path is:%s\n", cache_path);
+	ijkmp_set_option(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "cache_file_path", cache_path);
 
+	strncpy(cache_path + strlen(cache_path) - strlen(CACHE_DATA_TYPE), CACHE_INDEX_TYPE, strlen(CACHE_INDEX_TYPE) + 1);
+	printf("The cache index file path is:%s\n", cache_path);
+	ijkmp_set_option(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "cache_map_path", cache_path);
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "parse_cache_map", 1);
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "auto_save_map", 1);
+}
+//删除h5_video_set_cache_path指定目录下的cache文件。
+//若filename未指定则删除指定文件夹下所有缓存文件，spantime为已修改时间的最大范围，单位为秒，小于该值的不会被删除。
+//filename指定则直接删除filename的缓存文件。
+#ifdef __ANDROID__
+void Traverse_path(char* dir, char** type,int nSpanTime) {
+	char* curr_path = dir;
+	DIR* dp;
+	struct dirent* dirp;
+	char tmp_path[300];	
+	if ((dp = opendir(curr_path)) == NULL)
+	{
+		ALOGE("Traverse_path: Can not open this direction-- %s\n", curr_path);
+		return;
+	}
+	if (type == NULL) {
+		ALOGE("Traverse_path: Paragram type is null\n");
+		return;
+	}
+	if (type[0]==NULL||strcmp(type[0],CACHE_INDEX_TYPE)!=0) {
+		ALOGE("Traverse_path: Cache type[0] is not CACHE_INDEX_TYPE, but %s.\n", type[0]);
+		return;
+	}
+	int current_length = strlen(curr_path);
+	while ((dirp = readdir(dp)) != NULL)
+	{
+		if (dirp->d_type == 4)
+		{
+			if ((dirp->d_name)[0] == '.') //每个文件夹下都会有两个文件： '.'  和   '..'
+				continue;
+
+			sprintf(tmp_path, "%s/%s", curr_path, dirp->d_name);
+			Traverse_path(tmp_path, type, nSpanTime);
+		}
+		else if (dirp->d_type == 8)
+		{
+			if (strcmp(dirp->d_name + strlen(dirp->d_name) - strlen(type[0]), type[0]) == 0)	//后缀比较。cai
+			{
+				sprintf(tmp_path,"%s/%s", curr_path, dirp->d_name);
+				struct stat s;
+				lstat(tmp_path, &s);
+				if (time(NULL) - s.st_mtime >= nSpanTime) {
+					//remove
+					while (*type!=NULL) {
+						MPTRACE("Deleted cache file is:%s\n", tmp_path);
+						int ret = remove(tmp_path);//移除filename.cai filename.cad and the others.
+						if (ret < 0) {
+							ALOGE("Failed while deleting the file %s:%s", tmp_path, strerror(errno));
+						}
+						type++;
+						if(*type)
+							strncpy(tmp_path + strlen(tmp_path) - strlen(*(type - 1)), *type, strlen(*type) + 1);
+					}
+				}
+			}
+		}
+	}
+	closedir(dp);
+}
+#endif // __ANDROID__
+void strrp(char* src, char sub, char rp)
+{
+	if (src == NULL)return;
+	while (*src) {
+		if (*src == sub) {
+			*src = rp;
+		}
+		src++;
+	}
+}
+void h5_video_destory_cache_all(int span_time) {
+#ifdef _WINDOWS
+	char command[300];
+	int len = strlen(cache_path);
+	char* cachePath = malloc(len + 1);
+
+	if (cachePath == NULL) {
+		ALOGE("h5_video_destory_cache_all: malloc of cachePath failed!");
+		return;
+	}
+
+	strncpy(cachePath, cache_path, len + 1);
+	strrp(cachePath, '/', '\\');
+	sprintf(command, "del /s /q %s\\*%s", cachePath, CACHE_DATA_TYPE);
+	system(command);
+	MPTRACE("h5_video_destory_cache_all:system command is %s \n", command);//debug
+
+	strncpy(command + strlen(command) - strlen(CACHE_DATA_TYPE), CACHE_INDEX_TYPE, strlen(CACHE_INDEX_TYPE));
+	system(command);
+
+	free(cachePath);
+#elif __ANDROID__
+	char* type[] = { CACHE_INDEX_TYPE,CACHE_DATA_TYPE,NULL };
+	Traverse_path(cache_path, type, span_time);
+#endif // _WINDOWS
+}
+
+void h5_video_destory_cache_filename(const char* filename) {
+#ifdef _WINDOWS
+	char command[300];
+	int len = strlen(cache_path);
+	char* cachePath = malloc(len + 100);
+
+	if (cachePath == NULL) {
+		ALOGE("h5_video_destory_cache_all: malloc of cachePath failed!");
+		return;
+	}
+
+	sprintf(cachePath, "%s/%s", cache_path, filename);
+	strrp(cachePath, '/', '\\');
+	sprintf(command, "del /q  %s%s", cachePath, CACHE_DATA_TYPE);
+	system(command);
+	MPTRACE("h5_video_destory_cache_filename:system command is %s \n", command);//debug
+
+	strncpy(command + strlen(command) - strlen(CACHE_DATA_TYPE), CACHE_INDEX_TYPE, strlen(CACHE_INDEX_TYPE));
+	system(command);
+
+	free(cachePath);
+#elif __ANDROID__
+	char* cachePath = malloc(strlen(cache_path) + 100);
+	sprintf(cachePath, "%s/%s%s", cache_path, filename, CACHE_DATA_TYPE);
+	int ret = remove(cachePath);
+	if (ret < 0) {
+		ALOGE("h5_video_destory_cache_filename:%s",strerror(errno));
+	}
+	strncpy(cachePath + strlen(cachePath) - strlen(CACHE_DATA_TYPE), CACHE_INDEX_TYPE, strlen(CACHE_INDEX_TYPE));
+	remove(cachePath);
+	free(cachePath);
+#endif // _WINDOWS
+}
+void h5_video_destory_cache(const char* filename,int span_time) {
+	if (cache_path == NULL || access(cache_path, 0) != 0) {
+		ALOGE("h5_video_destory_cache: The cache path is not accessable!");
+		return;
+	}
+	if (span_time < 0) {
+		span_time = 0;
+	}
+	if (filename == NULL) {
+		h5_video_destory_cache_all(span_time);
+	}
+	else {
+		h5_video_destory_cache_filename(filename);
+	}
+}
+
+
+//------------------------------------------------------------------------------------------------------
 
 void  h5_video_play(const char* url, bool is_loop, int index)
 {
@@ -311,46 +493,55 @@ void  h5_video_play(const char* url, bool is_loop, int index)
 	}
 
 #ifdef _WIN32
- 	create_window_player();
+	create_window_player();
 #elif TARGET_OS_MAC
- 	create_mac_player();
+	create_mac_player();
 #elif TARGET_OS_IPHONE
- 	create_ios_player();
+	create_ios_player();
 
 #elif __ANDROID__
- 	create_android_player();
+	create_android_player();
 #endif
- 
-    if (!s_media_player)
-	{
+
+	if (!s_media_player){
 		ALOGE("created media object failed!");
 		return;
 	}
 
-	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "start-on-prepared", 1);   
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "start-on-prepared", 1);
 
-    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "max-fps", 30);
-    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "framedrop", 1); 
-    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "video-pictq-size", 3);
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "max-fps", 30);
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "framedrop", 1);
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_PLAYER, "video-pictq-size", 3);
 
-    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "reconnect", 1);
-    ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "timeout", 30 * 1000 * 1000);
-    ijkmp_set_option(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "user-agent", "h5player");
-
-    ijkmp_set_frame_callback(s_media_player, frame_update_callback);
-
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "reconnect", 1);
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "timeout", 30 * 1000 * 1000);
+	ijkmp_set_option(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "user-agent", "h5player");
+	ijkmp_set_option_int(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "safe", 0);
+	ijkmp_set_frame_callback(s_media_player, frame_update_callback);
+	//add
+	if (cache_path) {
+		MPTRACE("Cache path is:%s\n",cache_path);
+		h5_video_set_cache_pathl(url, cache_path);
+	}
 	s_video_index = index;
-	ijkmp_set_data_source(s_media_player, url);
-	ijkmp_set_option(s_media_player, IJKMP_OPT_CATEGORY_FORMAT, "safe", "0"); 
-	ijkmp_prepare_async(s_media_player);    
-    msg_queue_start(&s_player_msg_queue);
+	// ijkio:cache:ffio:
+	char protocol[100] = "ijkio:cache:ffio:";
+	//char protocol[100] = "";
+	strcat(protocol, url);
+	
+	ijkmp_set_data_source(s_media_player, protocol);
+	ijkmp_prepare_async(s_media_player);    //~!!!!!
+	msg_queue_start(&s_player_msg_queue);
 
-	if(is_loop)
+	if (is_loop)
 		ijkmp_set_loop(s_media_player, 100000);
-    
+
 	ijkmp_start(s_media_player);
 
+
 }
+
 
 void h5_video_pause()
 {

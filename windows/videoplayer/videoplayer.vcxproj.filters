@@ -219,6 +219,9 @@
     <ClInclude Include="..\..\ijkmedia\ijkplayer\ijkavutil\ijkstl.h">
       <Filter>ijkplayer\ijkavutil</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijkplayer\dirent_windows.h">
+      <Filter>ijkplayer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_aout.c">

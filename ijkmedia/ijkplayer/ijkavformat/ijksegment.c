@@ -25,7 +25,7 @@
 #include "libavutil/avstring.h"
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
-
+#include "../ijkavutil/ijkdict.h"
 #include "libavutil/application.h"
 
 typedef struct Context {
@@ -35,13 +35,20 @@ typedef struct Context {
     /* options */
     char           *http_hook;
     int64_t         app_ctx_intptr;
+    int             cache_file_close;
+    char*           cache_file_path;
+
 } Context;
 
+void ijksegment_save() {
+
+}
 static int ijksegment_open(URLContext *h, const char *arg, int flags, AVDictionary **options)
 {
     Context *c = h->priv_data;
     AVAppIOControl io_control = {0};
     AVApplicationContext *app_ctx = (AVApplicationContext *)(intptr_t)c->app_ctx_intptr;
+
     int ret = -1;
     int segment_index = -1;
 
@@ -59,8 +66,6 @@ static int ijksegment_open(URLContext *h, const char *arg, int flags, AVDictiona
 	strlcpy(io_control.url, arg, sizeof(io_control.url));
 #endif // _WIN32
 
-    
-
     if (app_ctx && io_control.segment_index < 0) {
         ret = AVERROR_EXTERNAL;
         goto fail;
@@ -71,6 +76,17 @@ static int ijksegment_open(URLContext *h, const char *arg, int flags, AVDictiona
         goto fail;
     }
 
+    /*
+    IjkAVDictionaryEntry* t = NULL;
+    t = ijk_av_dict_get(*options, "cache_file_path", NULL, IJK_AV_DICT_MATCH_CASE);
+    if (t) {
+        strcpy(c->cache_file_path, t->value);
+    }
+
+    if (c->cache_file_path == NULL ) {
+        c->cache_file_close = 1;
+    }
+    */
     av_dict_set_int(options, "ijkapplication", c->app_ctx_intptr, 0);
     av_dict_set_int(options, "ijkinject-segment-index", segment_index, 0);
 
@@ -100,8 +116,15 @@ static int ijksegment_close(URLContext *h)
 static int ijksegment_read(URLContext *h, unsigned char *buf, int size)
 {
     Context *c = h->priv_data;
+    //文件存在
+    
+    //文件大小不够
+    
+    //文件不存在，网络读取并写入
 
-    return ffurl_read(c->inner, buf, size);
+    int ret = ffurl_read(c->inner, buf, size);
+
+    return ret;
 }
 
 static int64_t ijksegment_seek(URLContext *h, int64_t pos, int whence)

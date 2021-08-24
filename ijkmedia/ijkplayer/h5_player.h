@@ -10,6 +10,8 @@ enum Pixel_Format {
 	FMT_RGBA,
 	FMT_ARGB,
 };
+#define CACHE_INDEX_TYPE ".cai"
+#define CACHE_DATA_TYPE ".cad"
 
 #ifdef __cplusplus
 extern "C"
@@ -19,6 +21,8 @@ extern "C"
 	void            h5_video_init(h5_video_callback video_func, h5_msg_callback msg_func, enum Pixel_Format format);
 	void            h5_video_set_option(const char* name, int value);
 	void            h5_video_play(const char* url, bool is_loop, int index);
+	void			h5_video_set_cache_path(char* value);
+	void 			h5_video_destory_cache(const char* filename, int span_time);
 	void            h5_video_update();
 	void            h5_video_pause();
 	void            h5_video_resume();

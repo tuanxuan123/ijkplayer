@@ -144,6 +144,7 @@ void ijkio_manager_destroy(IjkIOManagerContext *h)
 
     if (h->ijkio_app_ctx) {
         if (h->auto_save_map) {
+            mkdirs(h->cache_map_path);
             map_tree_info_fp = fopen(h->cache_map_path, "w");
             if (map_tree_info_fp) {
                 ijk_map_traversal_handle(h->ijkio_app_ctx->cache_info_map, map_tree_info_fp, ijkio_manager_save_tree_to_file);
@@ -158,13 +159,11 @@ void ijkio_manager_destroy(IjkIOManagerContext *h)
         if (h->ijkio_app_ctx->threadpool_ctx) {
             ijk_threadpool_destroy(h->ijkio_app_ctx->threadpool_ctx, IJK_IMMEDIATE_SHUTDOWN);
         }
-#ifndef _WIN32
         if (0 != strlen(h->ijkio_app_ctx->cache_file_path)) {
             if (h->ijkio_app_ctx->fd >= 0) {
                 close(h->ijkio_app_ctx->fd);
             }
         }
-#endif // !_WIN32
         pthread_mutex_destroy(&h->ijkio_app_ctx->mutex);
 
         ijkio_application_closep(&h->ijkio_app_ctx);
@@ -500,6 +499,7 @@ int64_t ijkio_manager_io_seek(IjkIOManagerContext *h, int64_t offset, int whence
 }
 
 int ijkio_manager_io_close(IjkIOManagerContext *h) {
+    
     int ret = -1;
     if (!h)
         return ret;
@@ -513,6 +513,7 @@ int ijkio_manager_io_close(IjkIOManagerContext *h) {
         ijk_av_freep(&inner->priv_data);
         ijk_av_freep(&inner);
     }
-
+    //add 
+    ijkio_manager_destroyp(&h);
     return ret;
 }

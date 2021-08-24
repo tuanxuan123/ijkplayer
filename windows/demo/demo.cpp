@@ -67,13 +67,8 @@ void UpdateTextureData(int index, int w, int h, unsigned char *data)
 			wBuffer[col] = pix;
 			pRGBA++;
 		}
-		
-
 		buffer += lockedRect.Pitch;
 	}
-
-
-
 	s_videoTexture->UnlockRect(0);
 
 }
@@ -120,9 +115,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DEMO));
 
 	
-
 	h5_video_init(UpdateTextureData, MessageCallback, FMT_RGBA);
-	h5_video_play("http://1253131631.vod2.myqcloud.com/26f327f9vodgzp1253131631/bca0bd469031868222923928043/f0.mp4", false, 0);
+	h5_video_set_cache_path("cache");
+	h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
 	//h5_video_play("C:/Users/xanderdeng/Desktop/videosrc/3.mp4", true, 0);
 
 	MSG msg;
@@ -142,10 +137,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			RenderVideo();
 		}
 	} 
-
-
-
-  
+	//add 
+	h5_video_stop();
+	h5_video_destory_cache(NULL,0);
 	fclose(stdin);
 	fclose(stdout);
 
@@ -247,7 +241,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: Add any drawing code that uses hdc here...
             EndPaint(hWnd, &ps);
-
         }
         break;
     case WM_DESTROY:

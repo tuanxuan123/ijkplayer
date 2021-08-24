@@ -47,6 +47,7 @@ static int ijkio_copy_options(IjkAVDictionary **dst, AVDictionary *src) {
         int ret = ijk_av_dict_set(dst, t->key, t->value, 0);
         if (ret < 0)
             return ret;
+
     }
 
     return 0;
@@ -56,7 +57,7 @@ static int ijkio_open(URLContext *h, const char *arg, int flags, AVDictionary **
 {
     Context *c = h->priv_data;
     int ret = -1;
-
+    ijkio_manager_create(&c->io_manager_ctx,NULL);
     if (!c || !c->io_manager_ctx)
         return -1;
 
@@ -109,6 +110,7 @@ static int ijkio_close(URLContext *h)
         return -1;
 
     ((IjkIOManagerContext *)(c->io_manager_ctx))->cur_ffmpeg_ctx  = c;
+    
     return ijkio_manager_io_close((IjkIOManagerContext *)(c->io_manager_ctx));
 }
 
