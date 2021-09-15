@@ -685,6 +685,7 @@ typedef struct FFPlayer {
     int mediacodec_auto_rotate;
 
     int opensles;
+    int xaudio2;
     int soundtouch_enable;
 
     char *iformat_name;
@@ -827,6 +828,7 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->mediacodec_auto_rotate         = 0; // option
 
     ffp->opensles                       = 0; // option
+    ffp->xaudio2                        = 1; // option
     ffp->soundtouch_enable              = 0; // option
 
     ffp->iformat_name                   = NULL; // option

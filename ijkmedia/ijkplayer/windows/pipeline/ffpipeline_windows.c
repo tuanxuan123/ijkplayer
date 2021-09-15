@@ -4,7 +4,7 @@
 #include "../../pipeline/ffpipenode_ffplay_vdec.h"
 #include "../../ff_ffplay.h"
 #include "../../../ijkmedia/ijksdl/windows/ijksdl_aout_windows_directsound.h"
-
+#include "../../../ijkmedia/ijksdl/windows/ijksdl_aout_windows_xaudio2.h"
 static SDL_Class g_pipeline_class = {
     .name = "ffpipeline_windows_media",
 };
@@ -31,7 +31,13 @@ static IJKFF_Pipenode *func_open_video_decoder(IJKFF_Pipeline *pipeline, FFPlaye
 
 static SDL_Aout *func_open_audio_output(IJKFF_Pipeline *pipeline, FFPlayer *ffp)
 {
-    SDL_Aout *aout = SDL_AoutWindows_CreateForDirectSound();
+    SDL_Aout* aout;
+    if (!ffp->xaudio2) {
+        aout = SDL_AoutWindows_CreateForDirectSound();
+    }
+    else {
+        aout = SDL_AoutWindows_CreateForXaudio2();
+    }
     return aout;
 }
 
