@@ -215,6 +215,7 @@
     <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_vout_internal.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_windows_interface.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_directsound.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_xaudio2.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_vout_windows_null.h" />
     <ClInclude Include="ffmpeg\libavutil\application.h" />
   </ItemGroup>
@@ -261,14 +262,23 @@
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_vout.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_windows_interface.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_directsound.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_xaudio2.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_vout_windows_null.c" />
     <ClCompile Include="ffmpeg\libavformat\async.c" />
     <ClCompile Include="ffmpeg\libavutil\application.c" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="videoplayer.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets" Condition="Exists('..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets'))" />
+  </Target>
 </Project>

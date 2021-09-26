@@ -222,6 +222,9 @@
     <ClInclude Include="..\..\ijkmedia\ijkplayer\dirent_windows.h">
       <Filter>ijkplayer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_xaudio2.h">
+      <Filter>ijksdl\windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_aout.c">
@@ -359,8 +362,12 @@
     <ClCompile Include="..\..\ijkmedia\ijkplayer\h5_player.c">
       <Filter>ijkplayer</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_xaudio2.c">
+      <Filter>ijksdl\windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="videoplayer.def" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
