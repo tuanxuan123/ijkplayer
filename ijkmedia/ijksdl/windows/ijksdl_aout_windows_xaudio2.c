@@ -37,12 +37,16 @@ struct SDL_Aout_Opaque
 	SDL_AudioSpec    spec;
 
 	volatile bool need_flush;
+	
 	volatile bool pause_on;
 	volatile bool abort_request;
 
 	volatile bool need_set_volume;
 	volatile float left_volume;
 	volatile float right_volume;
+
+	volatile bool need_set_speed;
+	volatile float video_speed;
 
 	IXAudio2* xAudio2;								//xAudio2引擎
 	IXAudio2MasteringVoice* xAudio2_master_voice;	//主语音
@@ -114,6 +118,7 @@ static int aout_thread_n(SDL_Aout* aout)
 
 	while (!opaque->abort_request)
 	{
+		//
 		SDL_LockMutex(opaque->wakeup_mutex);
 		if (!opaque->abort_request && opaque->pause_on)
 		{
@@ -141,6 +146,11 @@ static int aout_thread_n(SDL_Aout* aout)
 			xAudio2_source_voice->lpVtbl->SetVolume(xAudio2_source_voice,volume, XAUDIO2_COMMIT_NOW);
 		}
 
+		if (opaque->need_set_speed) {
+			//倍速调整
+			opaque->xAudio2_source_voice->lpVtbl->SetFrequencyRatio(opaque->xAudio2_source_voice, opaque->video_speed, XAUDIO2_COMMIT_NOW);
+		}
+		
 		SDL_UnlockMutex(opaque->wakeup_mutex);
 
 
@@ -200,7 +210,11 @@ static void aout_close_audio(SDL_Aout* aout)
 	SDL_CondSignal(opaque->wakeup_cond);
 	SDL_UnlockMutex(opaque->wakeup_mutex);
 
-	opaque->xAudio2_source_voice->lpVtbl->FlushSourceBuffers(opaque->xAudio2_source_voice);
+	if (opaque->xAudio2_source_voice) {
+		opaque->xAudio2_source_voice->lpVtbl->FlushSourceBuffers(opaque->xAudio2_source_voice);
+		opaque->xAudio2_source_voice->lpVtbl->DestroyVoice(opaque->xAudio2_source_voice);
+		opaque->xAudio2_source_voice = NULL;
+	}
 	
 	if (opaque->audio_tid)
 	{
@@ -231,7 +245,6 @@ static void aout_close_audio(SDL_Aout* aout)
 
 }
 
-
 //打开音频
 static int aout_open_audio(SDL_Aout* aout, const SDL_AudioSpec* desired, SDL_AudioSpec* obtained)
 {
@@ -253,23 +266,24 @@ static int aout_open_audio(SDL_Aout* aout, const SDL_AudioSpec* desired, SDL_Aud
 
 	opaque->offset = 0;
 
-	DSBUFFERDESC buffer_desc;
-	memset(&buffer_desc, 0, sizeof(DSBUFFERDESC));
-
 	set_wave_format(&opaque->WaveFormat, desired);
 
 	result = opaque->xAudio2->lpVtbl->CreateSourceVoice(opaque->xAudio2, &opaque->xAudio2_source_voice, &opaque->WaveFormat, 0, XAUDIO2_DEFAULT_FREQ_RATIO, 0, NULL, NULL);
-	CHECK_XAUDIO2_ERROR(result, "%s CreateSourceVoice() failed", __func__);
+	CHECK_XAUDIO2_ERROR(result, "%s CreateSourceVoice() failed\n", __func__);
+
+	opaque->xAudio2_source_voice->lpVtbl->FlushSourceBuffers(opaque->xAudio2_source_voice);
+
+
 
 	if (obtained) {
 		*obtained = *desired;
 		obtained->size = opaque->buffer_size;
 	}
 
-
+	opaque->need_set_volume = 0;
 	opaque->pause_on = 1;
 	opaque->abort_request = false;
-	opaque->audio_tid = SDL_CreateThreadEx(&opaque->_audio_tid, aout_thread, aout, "ff_aout_windows_directsound");
+	opaque->audio_tid = SDL_CreateThreadEx(&opaque->_audio_tid, aout_thread, aout, "ff_aout_windows_xaudio2");
 
 	return 0;
 
@@ -333,10 +347,6 @@ static void aout_flush_audio(SDL_Aout* aout)
 	SDL_UnlockMutex(opaque->wakeup_mutex);
 }
 
-
-
-
-
 static void aout_set_volume(SDL_Aout* aout, float left_volume, float right_volume)
 {
 	SDL_Aout_Opaque* opaque = aout->opaque;
@@ -349,6 +359,16 @@ static void aout_set_volume(SDL_Aout* aout, float left_volume, float right_volum
 	SDL_UnlockMutex(opaque->wakeup_mutex);
 }
 
+//音频速度调整
+static void aout_set_speed(SDL_Aout* aout, float speed) {
+	SDL_Aout_Opaque* opaque = aout->opaque;
+	SDL_LockMutex(opaque->wakeup_mutex);
+	ALOGI("aout_set_speed()");
+	opaque->need_set_speed = 1;
+	opaque->video_speed = speed;
+	SDL_CondSignal(opaque->wakeup_cond);
+	SDL_UnlockMutex(opaque->wakeup_mutex);
+}
 
 SDL_Aout* SDL_AoutWindows_CreateForXaudio2()
 {
@@ -385,7 +405,6 @@ SDL_Aout* SDL_AoutWindows_CreateForXaudio2()
 	aout->flush_audio = aout_flush_audio;
 	aout->close_audio = aout_close_audio;
 	aout->set_volume = aout_set_volume;
-
 	opaque->XAudio2_Buffer = (XAUDIO2_BUFFER*)malloc(sizeof(XAUDIO2_BUFFER) * BUFFER_NUM);
 	return aout;
 
