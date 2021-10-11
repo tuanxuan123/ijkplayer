@@ -74,8 +74,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)ffmpeg;$(ProjectDir)libs\pthread\include;$(ProjectDir)libs\ffmpeg-win64\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)libs\pthread\x64;$(ProjectDir)libs\ffmpeg-win64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)ffmpeg;$(ProjectDir)libs\pthread\include;$(ProjectDir)libs\zlog\include;$(ProjectDir)libs\ffmpeg-win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)libs\pthread\x64;$(ProjectDir)libs\ffmpeg-win64\lib;$(ProjectDir)libs\zlog\lib;$(LibraryPath)</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -83,8 +83,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\ffmpeg;$(ProjectDir)libs\pthread\include;$(ProjectDir)libs\ffmpeg-win64\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)libs\pthread\x64;$(ProjectDir)libs\ffmpeg-win64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)ffmpeg;$(ProjectDir)libs\pthread\include;$(ProjectDir)libs\zlog\include;$(ProjectDir)libs\ffmpeg-win64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)libs\pthread\x64;$(ProjectDir)libs\ffmpeg-win64\lib;$(ProjectDir)libs\zlog\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -114,9 +114,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib</AdditionalDependencies>
+      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib;zlog.lib</AdditionalDependencies>
       <ModuleDefinitionFile>videoplayer.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>F:\playercode\ijkplayer\windows\videoplayer\libs\ffmpeg-win64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>F:\playercode\ijkplayer\windows\videoplayer\libs\zlog\lib;F:\playercode\ijkplayer\windows\videoplayer\libs\ffmpeg-win64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,7 +153,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>videoplayer.def</ModuleDefinitionFile>
-      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib</AdditionalDependencies>
+      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib;zlog.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -193,6 +193,7 @@
     <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_image_convert.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_inc_ffmpeg.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_vout_overlay_ffmpeg.h" />
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_windows_log.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_aout.h" />
     <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_aout_internal.h" />
@@ -252,6 +253,7 @@
     <ClCompile Include="..\..\ijkmedia\ijkplayer\windows\pipeline\ffpipeline_windows.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\ffmpeg\abi_all\image_convert.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\ffmpeg\ijksdl_vout_overlay_ffmpeg.c" />
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_windows_log.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_aout.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_audio.c" />
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_error.c" />
@@ -268,6 +270,7 @@
     <ClCompile Include="ffmpeg\libavutil\application.c" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\ijkmedia\ijksdl\ijksdl_windows_zlog.conf" />
     <None Include="packages.config" />
     <None Include="videoplayer.def" />
   </ItemGroup>

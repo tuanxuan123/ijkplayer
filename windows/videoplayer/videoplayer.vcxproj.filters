@@ -225,6 +225,9 @@
     <ClInclude Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_xaudio2.h">
       <Filter>ijksdl\windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\ijkmedia\ijksdl\ijksdl_windows_log.h">
+      <Filter>ijksdl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_aout.c">
@@ -365,9 +368,15 @@
     <ClCompile Include="..\..\ijkmedia\ijksdl\windows\ijksdl_aout_windows_xaudio2.c">
       <Filter>ijksdl\windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\ijkmedia\ijksdl\ijksdl_windows_log.c">
+      <Filter>ijksdl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="videoplayer.def" />
     <None Include="packages.config" />
+    <None Include="..\..\ijkmedia\ijksdl\ijksdl_windows_zlog.conf">
+      <Filter>ijksdl</Filter>
+    </None>
   </ItemGroup>
 </Project>

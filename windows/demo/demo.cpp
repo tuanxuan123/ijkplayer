@@ -117,8 +117,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	
 	h5_video_init(UpdateTextureData, MessageCallback, FMT_RGBA);
 	h5_video_set_cache_path("cache");
+
 	h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
-	//h5_video_play("C:/Users/xanderdeng/Desktop/videosrc/3.mp4", true, 0);
+	//h5_video_play("F://video/LobbyBg.mp4", true, 0);
 
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
@@ -139,7 +140,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	} 
 	//add 
 	h5_video_stop();
-	h5_video_destory_cache(NULL,0);
+	//h5_video_destory_cache(NULL,0);
 	fclose(stdin);
 	fclose(stdout);
 

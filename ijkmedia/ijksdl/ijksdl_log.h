@@ -24,7 +24,7 @@
 
 #ifndef IJKSDL__IJKSDL_LOG_H
 #define IJKSDL__IJKSDL_LOG_H
-
+#define windows_log
 #include <stdio.h>
 
 #ifdef __ANDROID__
@@ -53,6 +53,9 @@
 
 #else
 
+#include "ijksdl_windows_log.h"
+
+
 #define IJK_LOG_UNKNOWN     0
 #define IJK_LOG_DEFAULT     1
 
@@ -64,9 +67,12 @@
 #define IJK_LOG_FATAL       7
 #define IJK_LOG_SILENT      8
 
+#ifdef windows_log
+#define VLOG(level, TAG, ...)    ffp_log_windows_vprint(level, TAG, __VA_ARGS__)
+#define ALOG(level, TAG, ...)    ffp_log_windows_print(level, TAG, __VA_ARGS__)
+#else
 #define VLOG(level, TAG, ...)    ((void)vprintf(__VA_ARGS__))
 #define ALOG(level, TAG, ...)    ((void)printf(__VA_ARGS__))
-
 #endif
 
 #define IJK_LOG_TAG "IJKMEDIA"
@@ -84,4 +90,5 @@
 #define ALOGE(...)  ALOG(IJK_LOG_ERROR,     IJK_LOG_TAG, __VA_ARGS__)
 #define LOG_ALWAYS_FATAL(...)   do { ALOGE(__VA_ARGS__); exit(1); } while (0)
 
+#endif
 #endif

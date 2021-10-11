@@ -350,5 +350,4 @@ int ijkav_register_ijktcphook_protocol(URLProtocol *protocol, int protocol_size)
 int ijkav_register_ijkhttphook_protocol(URLProtocol *protocol, int protocol_size);
 int ijkav_register_ijksegment_protocol(URLProtocol *protocol, int protocol_size);
 
-
 #endif /* AVFORMAT_URL_H */

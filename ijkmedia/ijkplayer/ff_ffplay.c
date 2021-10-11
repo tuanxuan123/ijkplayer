@@ -3169,8 +3169,11 @@ static int read_thread(void *arg)
         av_dict_set_int(&ffp->format_opts, "skip-calc-frame-rate", ffp->skip_calc_frame_rate, 0);
     }
 
+    
+
     if (ffp->iformat_name)
         is->iformat = av_find_input_format(ffp->iformat_name);
+
     err = avformat_open_input(&ic, is->filename, is->iformat, &ffp->format_opts);
     if (err < 0) {
         print_error(is->filename, err);
@@ -3944,9 +3947,10 @@ void ffp_global_init()
     if (g_ffmpeg_global_inited)
         return;
 
-    ALOGD("ijkmediaplayer version : %s", ijkmp_version());
+    ALOGD("ijkmediaplayer version! : %s\n", ijkmp_version());
     /* register all codecs, demux and protocols */
     avcodec_register_all();
+
 #if CONFIG_AVDEVICE
     avdevice_register_all();
 #endif
@@ -3954,9 +3958,7 @@ void ffp_global_init()
     avfilter_register_all();
 #endif
     av_register_all();
-
     ijkav_register_all();
-
     avformat_network_init();
 
     av_lockmgr_register(lockmgr);

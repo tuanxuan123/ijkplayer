@@ -158,7 +158,7 @@ static int aout_thread_n(SDL_Aout *aout)
 	if (!opaque->abort_request && !opaque->pause_on)
 	{
 		IDirectSoundBuffer_SetCurrentPosition(ds_buffer8, 0);
-		IDirectSoundBuffer_Play(ds_buffer8, 0, 0, DSBPLAY_LOOPING);
+        IDirectSoundBuffer_Play(ds_buffer8, 0, 0, DSBPLAY_LOOPING);
 	}
 	
 
