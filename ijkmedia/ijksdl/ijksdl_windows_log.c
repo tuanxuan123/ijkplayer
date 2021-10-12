@@ -1,6 +1,7 @@
 #include "ijksdl_windows_log.h"
 #include "zlog.h"
 #include <stdio.h>
+#include <Windows.h>
 
 #define LOG_BUF_SIZE	1024
 
@@ -16,16 +17,17 @@
 #define IJK_LOG_SILENT      8
 
 static int is_zlog_init = 1;
-static char* log_path = "log";
+static char log_path[128] = "";
 
 static int log_mkdirs(char* muldir);
-
+static void log_getpath();
 void ffp_log_windows_print(int level, const char *tag, const char *fmt, ...)
 {
     
     int rc;
     zlog_category_t* c;
     if (is_zlog_init) {
+        log_getpath();
         rc = zlog_init("..\\..\\ijkmedia\\ijksdl\\ijksdl_windows_zlog.conf");
         if (access(log_path, 0)) {
             log_mkdirs(log_path);
@@ -81,13 +83,18 @@ void ffp_log_windows_vprint(int level, const char *tag, const char *fmt, va_list
     int rc;
     zlog_category_t* c;
     if (is_zlog_init) {
+        log_getpath();
         rc = zlog_init("..\\..\\ijkmedia\\ijksdl\\ijksdl_windows_zlog.conf");
+        if (access(log_path, 0)) {
+            log_mkdirs(log_path);
+        }
         if (rc) {
             printf("init failed\n");
             return;
         }
         is_zlog_init = 0;
     }
+    zlog_put_mdc("path", log_path);
     c = zlog_get_category(tag);
     if (!c) {
         zlog_fini();
@@ -124,12 +131,22 @@ void ffp_log_windows_vprint(int level, const char *tag, const char *fmt, va_list
     }
     //zlog_fini();
 }
+static void log_getpath() {
+    wchar_t szBuffer[100];
+    int len = 100;
+    GetUserName(szBuffer, &len);
+    char szbu[100];
+    wcstombs(szbu, szBuffer, 100);
+    strcat(log_path, "C:\\Users\\");
+    strcat(log_path, szbu);
+    strcat(log_path, "\\AppData\\Local\\PVideoPlayer");
+}
 
 //zlog 日志生成路径不能新建文件夹，需要自行生成
 static int log_mkdirs(char* muldir)
 {
     int i, len;
-    char str[512];
+    wchar_t str[512];
     strncpy(str, muldir, strlen(muldir) + 1);
     len = strlen(str);
     int flag = 0;
