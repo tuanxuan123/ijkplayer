@@ -119,10 +119,33 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	h5_video_set_cache_path("cache");
 
 	//h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
-	/*for (int i = 0; i < 300; i++) {
-		h5_video_play("F://video/LobbyBg.mp4", true, 0);
+	for (int i = 0; i < 10; i++) {
+		printf("play\n");
+		time_t start = time(NULL);//or time(&start);  
+		time_t end;
+		//h5_video_play("F://video/LobbyBg.mp4", true, 0);
+		h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
+		long d;
+		while ((d = difftime((end = time(NULL)),start))<5) {
+			MSG msg;
+			printf("time : %ld\n",d);
+			memset(&msg, 0, sizeof(msg));
+
+			// Main message loop:
+				if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+				{
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+				else
+				{
+					h5_video_update();
+					RenderVideo();
+				}
+			
+		}
 		h5_video_stop();
-	}*/
+	}
 	
 	h5_video_play("F://video/LobbyBg.mp4", true, 0);
 	MSG msg;

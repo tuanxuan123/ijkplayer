@@ -62,7 +62,6 @@ struct SDL_Aout_Opaque
 
 };
 
-
 static void set_submitted_xaudio2_buffer(XAUDIO2_BUFFER* XAudio2Buffer, unsigned char* pBuffer, int BufferSize);
 
 //获取音频数据，并打包给xaudio2播放。
@@ -79,12 +78,13 @@ static int notify_thread(void* arg)
 
 	while (!opaque->abort_request)
 	{
+		if (opaque->abort_request)break;
 		audio_cblk(userdata, buffer, buffer_size);
 		XAUDIO2_VOICE_STATE state;
 		do {
 			opaque->xAudio2_source_voice->lpVtbl->GetState(opaque->xAudio2_source_voice, &state, 0);
 			//等待xaudio2播放队列空位
-		} while (state.BuffersQueued >= BUFFER_NUM);
+		} while (!opaque->abort_request &&state.BuffersQueued >= BUFFER_NUM);
 
 		memcpy(queueBuffer[opaque->offset], buffer, buffer_size);
 
@@ -120,6 +120,7 @@ static int aout_thread_n(SDL_Aout* aout)
 	{
 		//
 		SDL_LockMutex(opaque->wakeup_mutex);
+		if (opaque->abort_request)break;
 		if (!opaque->abort_request && opaque->pause_on)
 		{
 			xAudio2_source_voice->lpVtbl->Stop(xAudio2_source_voice, 0, XAUDIO2_COMMIT_NOW);
@@ -151,13 +152,12 @@ static int aout_thread_n(SDL_Aout* aout)
 			opaque->xAudio2_source_voice->lpVtbl->SetFrequencyRatio(opaque->xAudio2_source_voice, opaque->video_speed, XAUDIO2_COMMIT_NOW);
 		}
 		
-		SDL_UnlockMutex(opaque->wakeup_mutex);
-
-
 		if (opaque->need_flush)
 		{
 			xAudio2_source_voice->lpVtbl->FlushSourceBuffers(xAudio2_source_voice);
 		}
+
+		SDL_UnlockMutex(opaque->wakeup_mutex);
 	}
 
 	return 0;
@@ -168,9 +168,6 @@ static int aout_thread(void* arg)
 {
 	return aout_thread_n(arg);
 }
-
-
-
 
 
 //设置WAVEFORMAT
@@ -210,11 +207,7 @@ static void aout_close_audio(SDL_Aout* aout)
 	SDL_CondSignal(opaque->wakeup_cond);
 	SDL_UnlockMutex(opaque->wakeup_mutex);
 
-	if (opaque->xAudio2_source_voice) {
-		opaque->xAudio2_source_voice->lpVtbl->FlushSourceBuffers(opaque->xAudio2_source_voice);
-		opaque->xAudio2_source_voice->lpVtbl->DestroyVoice(opaque->xAudio2_source_voice);
-		opaque->xAudio2_source_voice = NULL;
-	}
+
 	
 	if (opaque->audio_tid)
 	{
@@ -226,6 +219,12 @@ static void aout_close_audio(SDL_Aout* aout)
 	{
 		SDL_WaitThread(opaque->notify_tid, NULL);
 		opaque->notify_tid = NULL;
+	}
+
+	if (opaque->xAudio2_source_voice) {
+		opaque->xAudio2_source_voice->lpVtbl->FlushSourceBuffers(opaque->xAudio2_source_voice);
+		opaque->xAudio2_source_voice->lpVtbl->DestroyVoice(opaque->xAudio2_source_voice);
+		opaque->xAudio2_source_voice = NULL;
 	}
 
 	if (opaque->buffer)
