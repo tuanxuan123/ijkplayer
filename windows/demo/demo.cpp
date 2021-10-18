@@ -118,8 +118,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	h5_video_init(UpdateTextureData, MessageCallback, FMT_RGBA);
 	h5_video_set_cache_path("cache");
 
-	//h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 20; i++) {
 		printf("play\n");
 		time_t start = time(NULL);//or time(&start);  
 		time_t end;
@@ -128,7 +127,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		long d;
 		while ((d = difftime((end = time(NULL)),start))<5) {
 			MSG msg;
-			printf("time : %ld\n",d);
 			memset(&msg, 0, sizeof(msg));
 
 			// Main message loop:
@@ -146,8 +144,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 		h5_video_stop();
 	}
-	
-	h5_video_play("F://video/LobbyBg.mp4", true, 0);
+	h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
+	//h5_video_play("F://video/LobbyBg.mp4", true, 0);
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 

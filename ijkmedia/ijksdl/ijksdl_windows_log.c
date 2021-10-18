@@ -231,7 +231,6 @@ static int check_memory() {
     }
     struct stat st;
     stat(path_filename, &st);
-    printf("%s %ld\n", path_filename, st.st_size);
     if (st.st_size >= max_log_size) {
         return 1;
     }
