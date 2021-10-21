@@ -542,13 +542,27 @@ void  h5_video_play(const char* url, bool is_loop, int index)
 
 }
 
+void h5_video_set_speed(float speed) {
+	if (!s_media_player)
+		return;
+	ijkmp_set_property_float(s_media_player, FFP_PROP_FLOAT_PLAYBACK_RATE, speed);
+}
 
+void h5_video_add_volume(float volume_changed) {
+	if (!s_media_player)
+		return;
+	ijkmp_set_property_float(s_media_player, FFP_PROP_FLOAT_PLAYBACK_VOLUME, volume_changed + ijkmp_get_property_float(s_media_player, FFP_PROP_FLOAT_PLAYBACK_VOLUME, 0));
+}
 void h5_video_pause()
 {
 	if (!s_media_player)
         return;
-
-    ijkmp_pause(s_media_player);
+	if (s_media_player->mp_state == MP_STATE_PAUSED) {
+		ijkmp_start(s_media_player);
+		return;
+	}else 
+		
+		ijkmp_pause(s_media_player);
 }
 
 
@@ -566,14 +580,13 @@ void h5_video_resume()
 
 
 
-void h5_video_seek(int sec)
+void h5_video_seek(long sec)
 {
 	if (!s_media_player)
-        return;
+		return;
 
-    long msec = (long)sec * 1000;
-
-    ijkmp_seek_to(s_media_player, msec);
+	long msec = (long)sec * 1000;
+	ijkmp_seek_to(s_media_player, msec);
 }
 
 

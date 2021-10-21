@@ -30,7 +30,8 @@ extern "C"
 	void 			h5_video_destroy();
 	long			h5_video_get_duration();
 	long			h5_video_get_position();
-
+	void			h5_video_set_speed(float);
+	void			h5_video_add_volume(float volume_changed);
 #ifdef __cplusplus
 }
 #endif

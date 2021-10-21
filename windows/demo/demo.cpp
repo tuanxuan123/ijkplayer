@@ -118,32 +118,32 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	h5_video_init(UpdateTextureData, MessageCallback, FMT_RGBA);
 	h5_video_set_cache_path("cache");
 
-	for (int i = 0; i < 20; i++) {
-		printf("play\n");
-		time_t start = time(NULL);//or time(&start);  
-		time_t end;
-		//h5_video_play("F://video/LobbyBg.mp4", true, 0);
-		h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
-		long d;
-		while ((d = difftime((end = time(NULL)),start))<5) {
-			MSG msg;
-			memset(&msg, 0, sizeof(msg));
+	//for (int i = 0; i < 20; i++) {
+	//	printf("play\n");
+	//	time_t start = time(NULL);//or time(&start);  
+	//	time_t end;
+	//	//h5_video_play("F://video/LobbyBg.mp4", true, 0);
+	//	h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
+	//	long d;
+	//	while ((d = difftime((end = time(NULL)),start))<5) {
+	//		MSG msg;
+	//		memset(&msg, 0, sizeof(msg));
 
-			// Main message loop:
-				if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
-				else
-				{
-					h5_video_update();
-					RenderVideo();
-				}
-			
-		}
-		h5_video_stop();
-	}
+	//		// Main message loop:
+	//			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	//			{
+	//				TranslateMessage(&msg);
+	//				DispatchMessage(&msg);
+	//			}
+	//			else
+	//			{
+	//				h5_video_update();
+	//				RenderVideo();
+	//			}
+	//		
+	//	}
+	//	h5_video_stop();
+	//}
 	h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
 	//h5_video_play("F://video/LobbyBg.mp4", true, 0);
 	MSG msg;
@@ -163,8 +163,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			RenderVideo();
 		}
 	} 
-	//add 
 	h5_video_stop();
+	//add 
 	//h5_video_destory_cache(NULL,0);
 	fclose(stdin);
 	fclose(stdout);
@@ -223,12 +223,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    InitDirectX9(hWnd);
-
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
    return TRUE;
 }
+
 
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -256,11 +256,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
+
         }
         break;
+
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
@@ -272,6 +275,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+	case WM_KEYDOWN:
+		switch (wParam) {
+		case VK_SPACE:
+			h5_video_pause();//or resume
+			break;
+		case VK_LEFT: {
+			h5_video_seek(h5_video_get_position()/1000 - 10);
+			break;
+		}
+		case VK_RIGHT:
+			h5_video_seek(h5_video_get_position()/1000 + 10);
+			break; 
+		case VK_UP:
+			h5_video_set_speed(2.0);
+			break; 
+		case VK_DOWN:
+			h5_video_set_speed(0.5);
+			break;
+		case VK_ADD:
+			h5_video_add_volume(1);
+			break;
+		case VK_SUBTRACT:
+			h5_video_add_volume(-1);
+			break;
+		}
+		break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -329,7 +358,7 @@ void InitDirectX9(HWND hWnd)
 	d3dpp.Flags = 0;
 	d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
 	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-
+	
 	pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL,
 		hWnd, vp, &d3dpp, &s_device);
 	pD3D->Release();

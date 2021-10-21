@@ -237,7 +237,7 @@ static void aout_close_audio(SDL_Aout* aout)
 	
 
 }
-
+static void aout_set_speed(SDL_Aout* aout, float speed);
 //´ò¿ªÒôÆµ
 static int aout_open_audio(SDL_Aout* aout, const SDL_AudioSpec* desired, SDL_AudioSpec* obtained)
 {
@@ -277,7 +277,7 @@ static int aout_open_audio(SDL_Aout* aout, const SDL_AudioSpec* desired, SDL_Aud
 	opaque->pause_on = 0;
 	opaque->abort_request = false;
 	opaque->audio_tid = SDL_CreateThreadEx(&opaque->_audio_tid, aout_thread, aout, "ff_aout_windows_xaudio2");
-
+	
 	return 0;
 
 fail:
@@ -398,6 +398,10 @@ SDL_Aout* SDL_AoutWindows_CreateForXaudio2()
 	aout->flush_audio = aout_flush_audio;
 	aout->close_audio = aout_close_audio;
 	aout->set_volume = aout_set_volume;
+
+	aout->func_set_playback_rate = aout_set_speed;
+	aout->func_set_playback_volume = aout_set_volume;
+
 	opaque->XAudio2_Buffer = (XAUDIO2_BUFFER*)malloc(sizeof(XAUDIO2_BUFFER) * BUFFER_NUM);
 	return aout;
 
