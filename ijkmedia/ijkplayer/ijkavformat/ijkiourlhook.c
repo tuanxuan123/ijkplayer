@@ -19,19 +19,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <assert.h>
 #include "ijkiourl.h"
 #include "ijkioprotocol.h"
-
 #include "libavutil/log.h"
 
 #include "libavutil/application.h"
+#include "ijkavutil/ijkutils.h"
 
-#ifdef _WIN32
-#include "../ijkavutil/ijkutils.h"
-#else
-#include "ijkplayer/ijkavutil/ijkutils.h"
-#endif // _WIN32
+
 
 
 typedef struct Context {
@@ -131,7 +126,6 @@ static int ijkio_urlhook_reconnect(IjkURLContext *h, IjkAVDictionary *extra)
 
     c->test_fail_point_next += c->test_fail_point;
 
-    assert(c->inner_options);
     ijk_av_dict_copy(&inner_options, c->inner_options, 0);
     if (extra)
         ijk_av_dict_copy(&inner_options, extra, 0);

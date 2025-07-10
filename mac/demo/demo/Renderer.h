@@ -13,6 +13,10 @@
 @interface Renderer : NSObject <MTKViewDelegate>
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)view;
--(void)updateVideoTexture:(int)index w:(int)w h:(int)h data:(unsigned char*)data;
+-(void)updateVideoTexture:(int)w h:(int)h data:(unsigned char*)data tag:(int)tag;
+
+@property (nonatomic )int VideoTag1;
+@property (nonatomic )int VideoTag2;
+
 @end
 

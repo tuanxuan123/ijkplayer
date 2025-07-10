@@ -32,22 +32,19 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include <assert.h>
-
-#include "../ijkplayer.h"
 #ifdef _WIN32
-#include "../ijkavutil/ijktree.h"
-#include "../ijkavutil/ijkutils.h"
-#include "../ijkavutil/ijkthreadpool.h"
-#include "../ijkavutil/ijkstl.h"
+#include <io.h>
 #else
 #include <unistd.h>
-#include "ijkplayer/ijkavutil/ijktree.h"
-#include "ijkplayer/ijkavutil/ijkutils.h"
-#include "ijkplayer/ijkavutil/ijkthreadpool.h"
-#include "ijkplayer/ijkavutil/ijkstl.h"
 #endif // _WIN32
 
+#include "ijkavutil/ijktree.h"
+#include "ijkavutil/ijkutils.h"
+#include "ijkavutil/ijkthreadpool.h"
+#include "ijkavutil/ijkstl.h"
+#include "libavutil/dict.h"
+#include "config.h"
+#include "ff_ffplay_def.h"
 
 #define DEFAULT_CACHE_MAX_CAPACITY            (512 * 1024 * 1024)
 #define DEFAULT_CACHE_FILE_FORWARDS_CAPACITY  (8 * 1024 * 1024)
@@ -104,7 +101,11 @@ typedef struct IjkIOCacheContext {
     char inner_url[4096];
     int inner_flags;
     int only_read_file;
+    int tag;
 } IjkIOCacheContext;
+
+static IjkIOCacheContext* s_io_contexts[MAX_VIDEO_COUNT] = { 0 };
+static pthread_mutex_t s_io_context_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int cmp(const void *key, const void *node)
 {
@@ -124,6 +125,14 @@ static void call_inject_statistic(IjkURLContext *h)
         statistic.logical_file_size   = c->logical_size;
         ijkio_application_on_cache_statistic(c->ijkio_app_ctx, &statistic);
     }
+}
+
+static int ijkio_is_cache_complete(IjkIOCacheContext* context)
+{
+    IjkCacheTreeInfo* cur_tree_info = ijk_map_get(context->ijkio_app_ctx->cache_info_map, 0);
+    if (cur_tree_info == NULL) return 0;
+
+    return (cur_tree_info->physical_size == cur_tree_info->file_size ? 1 : 0);
 }
 
 static int ijkio_cache_check_interrupt(IjkURLContext *h)
@@ -165,6 +174,7 @@ static int ijkio_cache_file_error(IjkURLContext *h) {
     IjkIOCacheContext *c = h->priv_data;
 
     av_log(NULL, AV_LOG_WARNING, "ijkio_cache_file_error\n");
+
     if (c && c->file_handle_retry_count > 3) {
         pthread_mutex_lock(&h->ijkio_app_ctx->mutex);
         c->file_error_count++;
@@ -177,6 +187,7 @@ static int ijkio_cache_file_error(IjkURLContext *h) {
             c->file_inner_pos        = 0;
             c->io_eof_reached        = 0;
             c->file_logical_pos      = c->read_logical_pos;
+
 
             close(c->fd);
             c->fd = -1;
@@ -202,6 +213,7 @@ static int ijkio_cache_file_error(IjkURLContext *h) {
                 c->cache_file_close = 1;
                 goto fail;
             }
+
         }
         pthread_mutex_unlock(&h->ijkio_app_ctx->mutex);
     }
@@ -209,6 +221,7 @@ static int ijkio_cache_file_error(IjkURLContext *h) {
     return 0;
 
 fail:
+
     pthread_mutex_unlock(&h->ijkio_app_ctx->mutex);
     return FILE_RW_ERROR;
 }
@@ -218,6 +231,7 @@ static int64_t ijkio_cache_file_overrang(IjkURLContext *h, int64_t *cur_pos, int
     av_log(NULL, AV_LOG_WARNING, "ijkio_cache_file_overrang will flush file\n");
 
     pthread_mutex_lock(&h->ijkio_app_ctx->mutex);
+
 
     if (!c->ijkio_app_ctx->shared) {
         ijk_map_remove(c->cache_info_map, (int64_t)c->cur_file_no);
@@ -241,6 +255,7 @@ static int64_t ijkio_cache_file_overrang(IjkURLContext *h, int64_t *cur_pos, int
     return c->cache_max_capacity;
 
 fail:
+
     pthread_mutex_unlock(&h->ijkio_app_ctx->mutex);
     return FILE_RW_ERROR;
 }
@@ -329,16 +344,19 @@ fail:
     free(node);
     return ret;
 
+
 }
 
 static int wrapped_file_read(IjkURLContext *h, void *dst, int size)
 {
+
     IjkIOCacheContext *c   = h->priv_data;
     int ret = -1;
 
     ret = (int)read(c->fd, dst, size);
     c->read_file_inner_error = ret < 0 ? ret : 0;
     return ret;
+
 }
 
 static int wrapped_url_read(IjkURLContext *h, void *dst, int size)
@@ -374,7 +392,6 @@ static int64_t ijkio_cache_ffurl_size(IjkURLContext *h) {
 
 static int ijkio_cache_io_open(IjkURLContext *h, const char *url, int flags, IjkAVDictionary **options) {
     int ret = 0;
-
     IjkIOCacheContext *c= h->priv_data;
     ret = c->inner->prot->url_open2(c->inner, url, flags, options);
     if (ret != 0) {
@@ -409,13 +426,11 @@ static int64_t ijkio_cache_write_file(IjkURLContext *h) {
 
     if (l_entry) {
         int64_t in_block_pos = c->file_logical_pos - l_entry->logical_pos;
-        assert(l_entry->logical_pos <= c->file_logical_pos);
         if (in_block_pos < l_entry->size) {
             c->file_logical_pos = l_entry->logical_pos + l_entry->size;
         }
     } else if (root) {
         int64_t in_block_pos = c->file_logical_pos - root->logical_pos;
-        assert(root->logical_pos <= c->file_logical_pos);
         if (in_block_pos < root->size) {
             c->file_logical_pos = root->logical_pos + root->size;
         }
@@ -550,29 +565,6 @@ static void ijkio_cache_task(void *h, void *r) {
     pthread_mutex_unlock(&c->file_mutex);
 }
 
-int mkdirs(char* muldir)
-{
-    int i, len;
-    char str[512];
-    strncpy(str, muldir, strlen(muldir)+1);
-    len = strlen(str);
-    int flag = 0;
-    for (i = 0; i < len; i++)
-    {
-        if (str[i] == '/')
-        {
-            str[i] = '\0';
-            if (access(str, 0) != 0)
-            {
-                int ret = mkdir(str,0x777);
-                flag = -1;
-            }
-            str[i] = '/';
-        }
-    }
-    return flag;
-}			
-
 static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVDictionary **options) {
     IjkIOCacheContext *c= h->priv_data;
     int ret = 0;
@@ -583,6 +575,11 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
     c->ijkio_app_ctx = h->ijkio_app_ctx;
     if (c->ijkio_app_ctx == NULL) {
         return -1;
+    }
+    c->tag = -1;
+    AVDictionaryEntry* entry = av_dict_get(*options, "tag", NULL, AV_DICT_MATCH_CASE);
+    if (entry) {
+        c->tag = atoi(entry->value);
     }
 
     c->async_open = 0;
@@ -609,6 +606,10 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
         c->cache_file_close = c->cache_file_close != 0 ? 1 : 0;
     }
 
+    if (c->ijkio_app_ctx->cache_file_close) {
+        c->cache_file_close = c->ijkio_app_ctx->cache_file_close;
+    }
+
     t = ijk_av_dict_get(*options, "cur_file_no", NULL, IJK_AV_DICT_MATCH_CASE);
     if (t) {
         c->cur_file_no = (int)strtol(t->value, NULL, 10);
@@ -628,15 +629,41 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
         c->cache_file_close = 1;
     }
 
+    if (!c->cache_file_close) {
+        for (int i = 0; i < MAX_VIDEO_COUNT; ++i) {
+            if (s_io_contexts[i] && i != c->tag) {
+                pthread_mutex_lock(&s_io_context_mutex);
+                if (s_io_contexts[i] && !ijkio_is_cache_complete(s_io_contexts[i]) &&
+                    strcmp(c->cache_file_path, s_io_contexts[i]->cache_file_path) == 0) {
+                    c->cache_file_close = c->ijkio_app_ctx->cache_file_close = 1;
+                    av_log(NULL, AV_LOG_WARNING, "video %d: cannot use cache because anthor video is cache the same file\n", c->tag);
+                    pthread_mutex_unlock(&s_io_context_mutex);
+                    break;
+                }
+                pthread_mutex_unlock(&s_io_context_mutex);
+            }
+        }
+
+        if (c->tag >= 0 && c->tag < MAX_VIDEO_COUNT) {
+            pthread_mutex_lock(&s_io_context_mutex);
+            s_io_contexts[c->tag] = c;
+            pthread_mutex_unlock(&s_io_context_mutex);
+        }
+    }
+
     c->threadpool_ctx       = c->ijkio_app_ctx->threadpool_ctx;
     c->cache_info_map       = c->ijkio_app_ctx->cache_info_map;
     c->last_physical_pos    = &c->ijkio_app_ctx->last_physical_pos;
     c->cache_count_bytes    = &c->ijkio_app_ctx->cache_count_bytes;
     if (!c->last_physical_pos || !c->threadpool_ctx || !c->cache_info_map) {
+        pthread_mutex_lock(&s_io_context_mutex);
+        s_io_contexts[c->tag] = NULL;
+        pthread_mutex_unlock(&s_io_context_mutex);
         return -1;
     }
 
-    
+
+
     if (!c->cache_file_close) {
         do {
             if (c->ijkio_app_ctx->fd >= 0) {
@@ -645,29 +672,24 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
                 if (ijk_map_size(c->cache_info_map) > 0) {
                     av_log(NULL, AV_LOG_INFO, "ijkio cache will use the data that already exists\n");
                     c->fd = open(c->cache_file_path, O_RDWR | O_BINARY, 0600);
-                    c->async_open = 1;
-                    cur_exist_file_size = lseek(c->fd, 0, SEEK_END);
-                    if (cur_exist_file_size < *c->last_physical_pos) {
-                        av_log(NULL, AV_LOG_WARNING, "ijkio cache exist is error, will delete last_physical_pos = %lld, cur_exist_file_size = %lld\n", *c->last_physical_pos, cur_exist_file_size);
-                        ijk_map_traversal_handle(c->cache_info_map, NULL, tree_destroy);
-                        ijk_map_clear(c->cache_info_map);
-                        *c->last_physical_pos    = 0;
-                        c->cache_physical_pos    = 0;
+					if (c->fd >= 0) {
+                        c->async_open = 1;
+                        cur_exist_file_size = lseek(c->fd, 0, SEEK_END);
+                        if (cur_exist_file_size < *c->last_physical_pos) {
+                            av_log(NULL, AV_LOG_WARNING, "ijkio cache exist is error, will delete last_physical_pos = %lld, cur_exist_file_size = %lld\n", *c->last_physical_pos, cur_exist_file_size);
+                            ijk_map_traversal_handle(c->cache_info_map, NULL, tree_destroy);
+                            ijk_map_clear(c->cache_info_map);
+                            *c->last_physical_pos    = 0;
+                            c->cache_physical_pos    = 0;
+                        }
                     }
                 } else {
-                    //add
-                    if (-1 == mkdirs(c->cache_file_path)) {
-                        MPTRACE("Mkdirs error\n");
-                    }
                     c->fd = open(c->cache_file_path, O_RDWR | O_BINARY | O_CREAT | O_TRUNC, 0600);
-
                 }
                 c->ijkio_app_ctx->fd = c->fd;
             }
-            MPTRACE("debug----Cache file path fd is:%d\n",c->fd);
             if (c->fd < 0) {
                 c->cache_file_close = 1;
-
                 break;
             }
 
@@ -697,6 +719,7 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
             }
         } while(0);
     }
+
 
     ret = ijkio_alloc_url(&(c->inner), url);
     if (c->inner && !ret) {
@@ -749,6 +772,12 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
         }
     }
 
+    AVDictionaryEntry *ffp_entry = av_dict_get(*options, "ffplayer", NULL, 0);
+    if (ffp_entry) {
+        FFPlayer *ffp = (FFPlayer *)(intptr_t)strtoll(ffp_entry->value, NULL, 10);
+        ffp_notify_msg1(ffp, FFP_MSG_CACHE_OPEN_SUCCESS);
+    }
+
     return 0;
 
 thread_fail:
@@ -776,6 +805,9 @@ url_fail:
         ijk_av_freep(&c->inner->priv_data);
         ijk_av_freep(&c->inner);
     }
+    pthread_mutex_lock(&s_io_context_mutex);
+    s_io_contexts[c->tag] = NULL;
+    pthread_mutex_unlock(&s_io_context_mutex);
     return ret;
 }
 
@@ -786,6 +818,7 @@ static int ijkio_file_read(IjkURLContext *h, void *dest, int to_read)
     IjkCacheEntry *next[2] = {NULL, NULL};
     int64_t ret            = 0;
     int to_copy            = 0;
+
 
     if (!c->tree_info)
         return 0;
@@ -821,6 +854,8 @@ static int ijkio_file_read(IjkURLContext *h, void *dest, int to_read)
         }
     }
     return (int)ret;
+
+
 }
 
 static int64_t sync_add_entry(IjkURLContext *h, const unsigned char *buf, int size)
@@ -899,6 +934,7 @@ fail:
     free(entry);
     free(node);
     return ret;
+
 
 }
 
@@ -1002,6 +1038,7 @@ static int ijkio_cache_sync_read(IjkURLContext *h, unsigned char *buf, int size)
     }
 
     return (int)ret;
+
 
 }
 
@@ -1160,6 +1197,10 @@ static int ijkio_cache_close(IjkURLContext *h) {
     ijk_av_freep(&c->inner->priv_data);
 
     ijk_av_freep(&c->inner);
+    pthread_mutex_lock(&s_io_context_mutex);
+    s_io_contexts[c->tag] = NULL;
+    pthread_mutex_unlock(&s_io_context_mutex);
+
     return ret;
 }
 
@@ -1194,6 +1235,7 @@ static int ijkio_cache_resume(IjkURLContext *h) {
     if (!c || !c->inner || !c->inner->prot)
         return IJKAVERROR(ENOSYS);
 
+
     if (!c->cache_file_path || 0 == strlen(c->cache_file_path) || c->cache_file_close) {
         c->cache_file_close = 1;
     } else {
@@ -1209,6 +1251,7 @@ static int ijkio_cache_resume(IjkURLContext *h) {
             }
         }
     }
+
 
     if (c->inner->prot->url_resume) {
         ret = c->inner->prot->url_resume(c->inner);

@@ -47,8 +47,22 @@
 #define FFMPEG_LOG_TAG "IJKFFMPEG"
 #endif
 
-//when you want to use ijkplayer itself video refresh, set it to 1
-//otherwise, set it to 0, int this situation��you must invoke ijkmp_update() to refresh video
-#define REFRESH_VIDEO_BY_IJKPLAYER 0
+#if _WIN32 || TARGET_OS_MAC
+#define MAX_VIDEO_COUNT 			32
+#else
+#define MAX_VIDEO_COUNT             16
+#endif
+
+#define MAX_MEDIACODEC_COUNT 		3
+#define MAX_PATH_LEN                1024
+#define MAX_SWITCH_PLAY_COUNT       360
+#define SWITCH_VOD_MS               300
+
+#define CACHE_INDEX_TYPE            ".vindex"
+#define CACHE_DATA_TYPE             ".vdata"
+#define CACHE_PROTOCAL              "ijkio:cache:ffio:"
+#define WITHOUT_IJKIO_CACHE_PROTOCAL  "cache:ffio:" /* 不进行ijkio的缓存协议头 */
+
+
 
 #endif//FFPLAY__CONFIG_H

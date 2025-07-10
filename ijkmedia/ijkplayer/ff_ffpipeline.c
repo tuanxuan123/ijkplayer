@@ -82,3 +82,9 @@ SDL_Aout *ffpipeline_open_audio_output(IJKFF_Pipeline *pipeline, FFPlayer *ffp)
 {
     return pipeline->func_open_audio_output(pipeline, ffp);
 }
+
+
+IJKFF_Pipenode *ffpipeline_open_audio_decoder(IJKFF_Pipeline *pipeline, FFPlayer *ffp)
+{
+    return pipeline->func_open_audio_decoder(pipeline, ffp);
+}

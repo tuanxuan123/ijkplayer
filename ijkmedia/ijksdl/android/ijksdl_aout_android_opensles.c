@@ -23,7 +23,6 @@
  */
 
 #include <stdbool.h>
-#include <assert.h>
 #include <math.h>
 #include <inttypes.h>
 #include <jni.h>
@@ -34,6 +33,7 @@
 #include "../ijksdl_aout_internal.h"
 #include "ijksdl_android_jni.h"
 #include "android_audiotrack.h"
+#include "ff_ffplay.h"
 
 #ifdef SDLTRACE
 #undef SDLTRACE
@@ -105,7 +105,8 @@ typedef struct SDL_Aout_Opaque {
 
 static inline SLmillibel android_amplification_to_sles(float volumeLevel) {
     // FIXME use the FX Framework conversions
-    if (volumeLevel < 0.00000001)
+    volumeLevel /= 100;
+    if (volumeLevel < 0.0001)
         return SL_MILLIBEL_MIN;
 
     SLmillibel mb = lroundf(2000.f * log10f(volumeLevel));
@@ -127,6 +128,8 @@ static int aout_thread_n(SDL_Aout *aout)
     uint8_t                       *next_buffer      = NULL;
     int                            next_buffer_index = 0;
     size_t                         bytes_per_buffer = opaque->bytes_per_buffer;
+    FFPlayer *ffp = (FFPlayer*)userdata;
+    VideoState *is = ffp->is;
 
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_HIGH);
 
@@ -166,12 +169,7 @@ static int aout_thread_n(SDL_Aout *aout)
             opaque->need_flush = 0;
             (*slBufferQueueItf)->Clear(slBufferQueueItf);
         }
-#if 0
-        if (opaque->need_set_volume) {
-            opaque->need_set_volume = 0;
-            // FIXME: set volume here
-        }
-#endif
+
         if (opaque->need_set_volume) {
             opaque->need_set_volume = 0;
             SLmillibel level = android_amplification_to_sles((opaque->left_volume + opaque->right_volume) / 2);
@@ -187,6 +185,18 @@ static int aout_thread_n(SDL_Aout *aout)
         next_buffer = opaque->buffer + next_buffer_index * bytes_per_buffer;
         next_buffer_index = (next_buffer_index + 1) % OPENSLES_BUFFERS;
         audio_cblk(userdata, next_buffer, bytes_per_buffer);
+
+		if (ffp->audio_delegate && is->audio_buf)
+		{
+			int nb_samples = bytes_per_buffer / 2 / is->audio_src.channels;
+			ffp->audio_delegate(next_buffer, bytes_per_buffer, nb_samples, is->audio_src.channels, is->audio_src.freq, is->audio_clock, ffp->tag);
+		}
+
+		if (!ffp->play_audio || ffp->only_play_api)
+		{
+        	memset(next_buffer, 0, bytes_per_buffer);
+    	}
+
         if (opaque->need_flush) {
             (*slBufferQueueItf)->Clear(slBufferQueueItf);
             opaque->need_flush = false;
@@ -271,9 +281,12 @@ static void aout_close_audio(SDL_Aout *aout)
 
 static void aout_free_l(SDL_Aout *aout)
 {
+    JNIEnv     *env     = NULL;
+
     SDLTRACE("%s\n", __func__);
     if (!aout)
         return;
+
 
     aout_close_audio(aout);
 
@@ -286,12 +299,22 @@ static void aout_free_l(SDL_Aout *aout)
 
     opaque->slEngine = NULL;
     if (opaque->slObject) {
-        (*opaque->slObject)->Destroy(opaque->slObject);
+        //android 8.1 will crash if jvm do not attach currentthread
+        if(SDL_JNI_SetupThreadEnv(&env) == 0 && env) {
+            (*opaque->slObject)->Destroy(opaque->slObject);
+        } else {
+            ALOGI("=======Destroy slObject fail========");
+        }
+            
+
         opaque->slObject = NULL;
     }
 
+    
+
     SDL_DestroyCondP(&opaque->wakeup_cond);
     SDL_DestroyMutexP(&opaque->wakeup_mutex);
+
 
     SDL_Aout_FreeInternal(aout);
 }
@@ -299,7 +322,6 @@ static void aout_free_l(SDL_Aout *aout)
 static int aout_open_audio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
 {
     SDLTRACE("%s\n", __func__);
-    assert(desired);
     SDLTRACE("aout_open_audio()\n");
     SDL_Aout_Opaque  *opaque     = aout->opaque;
     SLEngineItf       slEngine   = opaque->slEngine;
@@ -314,34 +336,16 @@ static int aout_open_audio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_Aud
         OPENSLES_BUFFERS
     };
 
-    int native_sample_rate = audiotrack_get_native_output_sample_rate(NULL);
-    ALOGI("OpenSL-ES: native sample rate %d Hz\n", native_sample_rate);
 
     CHECK_COND_ERROR((desired->format == AUDIO_S16SYS), "%s: not AUDIO_S16SYS", __func__);
     CHECK_COND_ERROR((desired->channels == 2 || desired->channels == 1), "%s: not 1,2 channel", __func__);
     CHECK_COND_ERROR((desired->freq >= 8000 && desired->freq <= 48000), "%s: unsupport freq %d Hz", __func__, desired->freq);
-    if (SDL_Android_GetApiLevel() < IJK_API_21_LOLLIPOP &&
-        native_sample_rate > 0 &&
-        desired->freq < native_sample_rate) {
-        // Don't try to play back a sample rate higher than the native one,
-        // since OpenSL ES will try to use the fast path, which AudioFlinger
-        // will reject (fast path can't do resampling), and will end up with
-        // too small buffers for the resampling. See http://b.android.com/59453
-        // for details. This bug is still present in 4.4. If it is fixed later
-        // this workaround could be made conditional.
-        //
-        // by VLC/android_opensles.c
-        ALOGW("OpenSL-ES: force resample %lu to native sample rate %d\n",
-              (unsigned long) format_pcm->samplesPerSec / 1000,
-              (int) native_sample_rate);
-        format_pcm->samplesPerSec = native_sample_rate * 1000;
-    }
+    
 
     format_pcm->formatType       = SL_DATAFORMAT_PCM;
     format_pcm->numChannels      = desired->channels;
     format_pcm->samplesPerSec    = desired->freq * 1000; // milli Hz
-    // format_pcm->numChannels      = 2;
-    // format_pcm->samplesPerSec    = SL_SAMPLINGRATE_44_1;
+
 
     format_pcm->bitsPerSample    = SL_PCMSAMPLEFORMAT_FIXED_16;
     format_pcm->containerSize    = SL_PCMSAMPLEFORMAT_FIXED_16;
@@ -391,9 +395,7 @@ static int aout_open_audio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_Aud
     ret = (*opaque->slBufferQueueItf)->RegisterCallback(opaque->slBufferQueueItf, aout_opensles_callback, (void*)aout);
     CHECK_OPENSL_ERROR(ret, "%s: slBufferQueueItf->RegisterCallback() failed", __func__);
 
-    // set the player's state to playing
-    // ret = (*opaque->slPlayItf)->SetPlayState(opaque->slPlayItf, SL_PLAYSTATE_PLAYING);
-    // CHECK_OPENSL_ERROR(ret, "%s: slBufferQueueItf->slPlayItf() failed", __func__);
+
 
     opaque->bytes_per_frame   = format_pcm->numChannels * format_pcm->bitsPerSample / 8;
     opaque->milli_per_buffer  = OPENSLES_BUFLEN;
@@ -408,7 +410,7 @@ static int aout_open_audio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_Aud
     opaque->buffer          = malloc(opaque->buffer_capacity);
     CHECK_COND_ERROR(opaque->buffer, "%s: failed to alloc buffer %d\n", __func__, (int)opaque->buffer_capacity);
 
-    // (*opaque->slPlayItf)->SetPositionUpdatePeriod(opaque->slPlayItf, 1000);
+
 
     // enqueue empty buffer to start play
     memset(opaque->buffer, 0, opaque->buffer_capacity);
@@ -419,7 +421,7 @@ static int aout_open_audio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_Aud
 
     opaque->pause_on = 1;
     opaque->abort_request = 0;
-    opaque->audio_tid = SDL_CreateThreadEx(&opaque->_audio_tid, aout_thread, aout, "ff_aout_opensles");
+    opaque->audio_tid = SDL_CreateThreadEx(&opaque->_audio_tid, aout_thread, aout, "ff_opensles_thread");
     CHECK_COND_ERROR(opaque->audio_tid, "%s: failed to SDL_CreateThreadEx", __func__);
 
     if (obtained) {
@@ -486,7 +488,8 @@ static double aout_get_latency_seconds(SDL_Aout *aout)
 
 SDL_Aout *SDL_AoutAndroid_CreateForOpenSLES()
 {
-    SDLTRACE("%s\n", __func__);
+
+    ALOGI("using OpenSLES");
     SDL_Aout *aout = SDL_Aout_CreateInternal(sizeof(SDL_Aout_Opaque));
     if (!aout)
         return NULL;
@@ -494,6 +497,8 @@ SDL_Aout *SDL_AoutAndroid_CreateForOpenSLES()
     SDL_Aout_Opaque *opaque = aout->opaque;
     opaque->wakeup_cond = SDL_CreateCond();
     opaque->wakeup_mutex = SDL_CreateMutex();
+
+    
 
     int ret = 0;
 
@@ -529,6 +534,7 @@ SDL_Aout *SDL_AoutAndroid_CreateForOpenSLES()
     aout->set_volume   = aout_set_volume;
     aout->func_get_latency_seconds = aout_get_latency_seconds;
 
+
     return aout;
 fail:
     aout_free_l(aout);
@@ -537,7 +543,7 @@ fail:
 
 bool SDL_AoutAndroid_IsObjectOfOpenSLES(SDL_Aout *aout)
 {
-    if (aout)
+    if (!aout)
         return false;
 
     return aout->opaque_class == &g_opensles_class;

@@ -1,0 +1,15 @@
+# openssl pkg-config source file 
+
+prefix=${pcfiledir}/x64
+prefixinc=${prefix}
+exec_prefix=${prefix}
+libdir=${exec_prefix}
+includedir=${prefixinc}
+
+Name: openssl
+Description: openssl 1.02
+Version: @VERSION@
+Requires:
+Conflicts:
+Libs: -L${libdir} -lssleay32 -leay32 -lAdvAPI32 -lCrypt32 -lGdi32 -lUser32 -lWS2_32
+Cflags: -I${includedir}

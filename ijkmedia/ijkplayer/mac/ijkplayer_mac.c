@@ -8,8 +8,8 @@
 
 IjkMediaPlayer *ijkmp_mac_create(int (*msg_loop)(void*))
 {
-	IjkMediaPlayer *mp = ijkmp_create(msg_loop);
-	if (!mp)
+    IjkMediaPlayer *mp = ijkmp_create(msg_loop);
+    if (!mp)
         goto fail;
 
 
@@ -25,6 +25,6 @@ IjkMediaPlayer *ijkmp_mac_create(int (*msg_loop)(void*))
     return mp;
 
 fail:
-    ijkmp_dec_ref_p(&mp);
+    ijkmp_destroy(mp);
     return NULL;
 }

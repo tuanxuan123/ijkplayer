@@ -46,6 +46,7 @@ void J4AC_android_media_MediaFormat__setByteBuffer__catchAll(JNIEnv *env, jobjec
 void J4AC_android_media_MediaFormat__setByteBuffer__withCString(JNIEnv *env, jobject thiz, const char *name_cstr__, jobject bytes);
 void J4AC_android_media_MediaFormat__setByteBuffer__withCString__catchAll(JNIEnv *env, jobject thiz, const char *name_cstr__, jobject bytes);
 int J4A_loadClass__J4AC_android_media_MediaFormat(JNIEnv *env);
+int J4AC_android_MediaFormat__SupportEAC3();
 
 #define J4A_HAVE_SIMPLE__J4AC_android_media_MediaFormat
 
@@ -71,5 +72,6 @@ int J4A_loadClass__J4AC_android_media_MediaFormat(JNIEnv *env);
 #define J4AC_MediaFormat__setByteBuffer__withCString J4AC_android_media_MediaFormat__setByteBuffer__withCString
 #define J4AC_MediaFormat__setByteBuffer__withCString__catchAll J4AC_android_media_MediaFormat__setByteBuffer__withCString__catchAll
 #define J4A_loadClass__J4AC_MediaFormat J4A_loadClass__J4AC_android_media_MediaFormat
+#define J4AC_MediaFormat__SupportEAC3 J4AC_android_MediaFormat__SupportEAC3
 
 #endif//J4A__android_media_MediaFormat__H

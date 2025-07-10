@@ -37,12 +37,14 @@ struct SDL_Aout {
 
     SDL_Class       *opaque_class;
     SDL_Aout_Opaque *opaque;
+	void *opaque2;
     void (*free_l)(SDL_Aout *vout);
     int (*open_audio)(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_AudioSpec *obtained);
     void (*pause_audio)(SDL_Aout *aout, int pause_on);
     void (*flush_audio)(SDL_Aout *aout);
     void (*set_volume)(SDL_Aout *aout, float left, float right);
     void (*close_audio)(SDL_Aout *aout);
+    int  (*reopen_audio)(SDL_Aout *aout);
 
     double (*func_get_latency_seconds)(SDL_Aout *aout);
     void   (*func_set_default_latency_seconds)(SDL_Aout *aout, double latency);
@@ -74,5 +76,7 @@ void   SDL_AoutSetPlaybackVolume(SDL_Aout *aout, float volume);
 
 // android only
 int    SDL_AoutGetAudioSessionId(SDL_Aout *aout);
+
+int    SDL_AudioSupportEAC3();
 
 #endif

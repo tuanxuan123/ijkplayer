@@ -4,9 +4,13 @@
 #include "stdafx.h"
 #include "demo.h"
 #include "h5_player.h"
+#include "pandora_player.h"
+#include "cJson.h"
+#include "player_utils.h"
 #include <iostream>
 #include <d3d9.h>                  
 #include <d3dx9.h>
+#include <stdlib.h>
 
 
 #define MAX_LOADSTRING 100
@@ -26,9 +30,10 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
 static LPDIRECT3DDEVICE9       s_device = NULL;  
-static LPDIRECT3DVERTEXBUFFER9 s_vertexBuf = NULL;
-static LPDIRECT3DINDEXBUFFER9  s_indexBuf = NULL;
-static LPDIRECT3DTEXTURE9      s_videoTexture = NULL;
+static LPDIRECT3DVERTEXBUFFER9 s_vertexBuf[2] = { NULL };
+static LPDIRECT3DINDEXBUFFER9  s_indexBuf = NULL ;
+static LPDIRECT3DTEXTURE9      s_videoTexture[2] = { NULL };
+static Pixel_Format			   s_videoDataFormat = FMT_RGBA;
 
 struct VideoVertex
 {
@@ -42,18 +47,61 @@ struct VideoVertex
 
 void InitDirectX9(HWND hWnd);    
 void RenderVideo();
-             
 
-void UpdateTextureData(int index, int w, int h, unsigned char *data)
+static void* H5FileOpen(const char *path, int mode)
 {
-	if (!s_videoTexture)
+	return (void *) fopen(path, "rb");
+}
+
+static int H5FileRead(void *file_handle, unsigned char *buf, int size)
+{
+	return fread(buf, sizeof(char), size, (FILE *) file_handle);
+}
+
+
+static int64_t H5FileSeek(void *file_handle, int64_t offset, int whence)
+{
+	FILE *file = (FILE *) file_handle;
+	if (whence == 65536)
 	{
-		D3DXCreateTexture(s_device, w, h, 0, 0, D3DFMT_A8B8G8R8, D3DPOOL_MANAGED, &s_videoTexture);
+		int64_t cur_pos = ftell(file);
+		fseek(file, 0, SEEK_END);
+		int64_t file_len = ftell(file);
+
+		fseek(file, cur_pos, SEEK_SET);
+		cur_pos = ftell(file);
+		return file_len;
+	}
+
+	return fseek(file, offset, whence);
+}
+
+
+static int H5FileClose(void *file_handle)
+{
+	return fclose((FILE*)file_handle);
+}
+
+static void PandoraUpdateTextureData(uint8_t* data[], int w, int h, int format, int tag)
+{
+	printf("hPandoraUpdateTextureData tag: %d\n", tag);
+}
+
+static void UpdateTextureData(int w, int h, unsigned char *data, int tag)
+{
+	if (tag >= 2)
+		return;
+
+	if (!s_videoTexture[tag])
+	{
+		D3DXCreateTexture(s_device, w, h, 0, 0, (s_videoDataFormat == FMT_RGB ? D3DFMT_R8G8B8 : D3DFMT_A8R8G8B8), D3DPOOL_MANAGED, &s_videoTexture[tag]);
 	}
 
 	D3DLOCKED_RECT lockedRect = { 0 };
 
-	s_videoTexture->LockRect(0, &lockedRect, NULL, 0);
+	s_videoTexture[tag]->LockRect(0, &lockedRect, NULL, 0);
+
+
 	int pitch = lockedRect.Pitch;
 
 	DWORD* pRGBA = (DWORD*)data;
@@ -67,27 +115,48 @@ void UpdateTextureData(int index, int w, int h, unsigned char *data)
 			wBuffer[col] = pix;
 			pRGBA++;
 		}
-		buffer += lockedRect.Pitch;
+
+		buffer += pitch;
 	}
-	s_videoTexture->UnlockRect(0);
+
+
+	s_videoTexture[tag]->UnlockRect(0);
 
 }
 
 
-void MessageCallback(int index, int event, int arg1, int arg2, const char* msg)
+void MessageCallback(int event, int arg1, int arg2, const char* msg, int tag)
 {
-	printf("MessageCallback event : %d, message: %s\n", event, msg);
+	if (event == 200)
+	{
+		cJSON* root = cJSON_Parse(msg);
+
+		cJSON* duration = cJSON_GetObjectItem(root, "duration/ms");
+		cJSON* width = cJSON_GetObjectItem(root, "width/p");
+		cJSON* bit_rate = cJSON_GetObjectItem(root, "bit_rate/bps");
+		cJSON* codec_id = cJSON_GetObjectItem(root, "codec_id");
+		cJSON* cformat = cJSON_GetObjectItem(root, "cformat");
+		cJSON* hardware_decode = cJSON_GetObjectItem(root, "hardware_decode");
+
+		printf("MessageCallback json_message: %s\n", msg);
+		printf("MessageCallback json_item duration:%d, width:%d, bit_rate:%d, code_id:%s, nformat:%s, hardware_decode:%d\n", 
+			duration->valueint, width->valueint, bit_rate->valueint, codec_id->valuestring, cformat->valuestring, hardware_decode->valueint);
+	}
 }
 
 
-
-
-static void CALLBACK TimeProc(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+void AudioDataCallback(const unsigned char* data, unsigned int size, int samples, int channels, int sample_rate, double clock, int tag)
 {
-	h5_video_seek(4);
+	printf("AudioDataCallback samples: %d, channels: %d, sample_rate: %d, clock: %f, size : %d\n", samples, channels, sample_rate, clock, size);
 }
 
 
+void NetworkDataCallback(const unsigned char *data, unsigned int size, int tag)
+{
+	printf("NetworkDataCallback size: %d\n",  size);
+}
+static int tag1 = 0;
+static int tag2 = 0;
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -114,38 +183,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DEMO));
 
-	
-	h5_video_init(UpdateTextureData, MessageCallback, FMT_RGBA);
-	h5_video_set_cache_path("cache");
+	h5_video_set_log_level(LOG_INFO);
+	h5_video_init(UpdateTextureData, MessageCallback, s_videoDataFormat);
+	//h5_video_set_audio_data_callback(AudioDataCallback, 1);
+	//h5_video_set_network_data_callback(NetworkDataCallback);
 
-	//for (int i = 0; i < 20; i++) {
-	//	printf("play\n");
-	//	time_t start = time(NULL);//or time(&start);  
-	//	time_t end;
-	//	//h5_video_play("F://video/LobbyBg.mp4", true, 0);
-	//	h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
-	//	long d;
-	//	while ((d = difftime((end = time(NULL)),start))<5) {
-	//		MSG msg;
-	//		memset(&msg, 0, sizeof(msg));
+	//h5_video_set_file_delegate(H5FileOpen, H5FileRead, H5FileSeek, H5FileClose);
 
-	//		// Main message loop:
-	//			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-	//			{
-	//				TranslateMessage(&msg);
-	//				DispatchMessage(&msg);
-	//			}
-	//			else
-	//			{
-	//				h5_video_update();
-	//				RenderVideo();
-	//			}
-	//		
-	//	}
-	//	h5_video_stop();
-	//}
-	h5_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", false, 0);
-	//h5_video_play("F://video/LobbyBg.mp4", true, 0);
+	//h5_video_set_cache_path("C:/Users/xanderdeng/Desktop/PVideoPlayerCache");
+	//h5_video_set_cache_path("C:/Users/kiddpeng/Desktop/PVideoPlayerCache");
+
+	//int tag1 = h5_video_play("C:/Users/xanderdeng/Desktop/videosrc/too_short.mp4", 0, 0);
+	//int tag1 = h5_video_play("ijkio:cache:ffio:https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", 1, 0);
+	tag1 = h5_video_play("https://1318168317.vod-qcloud.com/b16262f1vodtranscq1318168317/dfe79e571397757886876166210/v.f100040.mp4", 1, 0);
+	tag2 = pandora_video_play("https://image.smoba.qq.com/Video/playonline/Nobe_Video.mp4", 1);
+	//int tag1 = h5_video_play("ijkio:cache:ffio:E:/1/warn.ogg", 0, 0);
+
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 
@@ -159,13 +212,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 		else
 		{
-			h5_video_update();
+			h5_video_update(tag1);
+			pandora_video_update(tag2);
 			RenderVideo();
+
+			Sleep(5);
 		}
 	} 
-	h5_video_stop();
-	//add 
-	//h5_video_destory_cache(NULL,0);
+
+
+
+  
 	fclose(stdin);
 	fclose(stdout);
 
@@ -223,12 +280,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    InitDirectX9(hWnd);
+
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
    return TRUE;
 }
-
 
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -242,6 +299,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static int volume = 100;
+	static int seek_time = 0;
     switch (message)
     {
     case WM_COMMAND:
@@ -251,56 +310,60 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (wmId)
             {
             case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+				//DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+				h5_video_stop(0);
                 break;
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
-
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
-
         }
         break;
-
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: Add any drawing code that uses hdc here...
             EndPaint(hWnd, &ps);
+
         }
         break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
 	case WM_KEYDOWN:
+		
 		switch (wParam) {
 		case VK_SPACE:
-			h5_video_pause();//or resume
+			seek_time = rand() % 120;
+			h5_video_seek(seek_time, 0);//or resume
 			break;
 		case VK_LEFT: {
-			h5_video_seek(h5_video_get_position()/1000 - 10);
+			volume -= 10;
+			volume = volume < 0 ? 0 : volume;
+			h5_video_set_volume(volume, 0);
 			break;
 		}
 		case VK_RIGHT:
-			h5_video_seek(h5_video_get_position()/1000 + 10);
-			break; 
+			volume += 10;
+			volume = volume > 100 ? 100 : volume;
+			h5_video_set_volume(volume, 0);
+			break;
 		case VK_UP:
-			h5_video_set_speed(2.0);
-			break; 
+			h5_video_pause(0);
+			break;
 		case VK_DOWN:
-			h5_video_set_speed(0.5);
+			h5_video_resume(0);
 			break;
 		case VK_ADD:
-			h5_video_add_volume(1);
+			
 			break;
 		case VK_SUBTRACT:
-			h5_video_add_volume(-1);
+			
 			break;
 		}
-		break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -358,27 +421,33 @@ void InitDirectX9(HWND hWnd)
 	d3dpp.Flags = 0;
 	d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
 	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-	
+
 	pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL,
 		hWnd, vp, &d3dpp, &s_device);
 	pD3D->Release();
 
 
-
-	s_device->CreateVertexBuffer(4 * sizeof(VideoVertex), 0,
-		D3DFVF_VideoVertex, D3DPOOL_DEFAULT, &s_vertexBuf, NULL);
+	for(int i = 0; i < 2; ++i)
+		s_device->CreateVertexBuffer(4 * sizeof(VideoVertex), 0,
+			D3DFVF_VideoVertex, D3DPOOL_DEFAULT, &s_vertexBuf[i], NULL);
 
 
 	VideoVertex *pVertices = NULL;
-	s_vertexBuf->Lock(0, 0, (void**)&pVertices, 0);
-
+	s_vertexBuf[0]->Lock(0, 0, (void**)&pVertices, 0);
 	pVertices[0] = VideoVertex(40.0f, 10.0f, 0.5f, 1.0f, 0.0f, 0.0f);
-	pVertices[1] = VideoVertex(1240.0f, 10.0f, 0.5f, 1.0f, 1.0f, 0.0f);
-	pVertices[2] = VideoVertex(1240.0f, 710.0f, 0.5f, 1.0f, 1.0f, 1.0f);
-	pVertices[3] = VideoVertex(40.0f, 710.0f, 0.5f, 1.0f, 0.0f, 1.0f);
+	pVertices[1] = VideoVertex(640.0f, 10.0f, 0.5f, 1.0f, 1.0f, 0.0f);
+	pVertices[2] = VideoVertex(640.0f, 410.0f, 0.5f, 1.0f, 1.0f, 1.0f);
+	pVertices[3] = VideoVertex(40.0f, 410.0f, 0.5f, 1.0f, 0.0f, 1.0f);
+	s_vertexBuf[0]->Unlock();
+
+	s_vertexBuf[1]->Lock(0, 0, (void**)&pVertices, 0);
+	pVertices[0] = VideoVertex(650.0f, 10.0f, 0.5f, 1.0f, 0.0f, 0.0f);
+	pVertices[1] = VideoVertex(1250.0f, 10.0f, 0.5f, 1.0f, 1.0f, 0.0f);
+	pVertices[2] = VideoVertex(1250.0f, 410.0f, 0.5f, 1.0f, 1.0f, 1.0f);
+	pVertices[3] = VideoVertex(650.0f, 410.0f, 0.5f, 1.0f, 0.0f, 1.0f);
+	s_vertexBuf[1]->Unlock();
 
 
-	s_vertexBuf->Unlock();
 
 	s_device->CreateIndexBuffer(6 * sizeof(WORD), 0,
 		D3DFMT_INDEX16, D3DPOOL_DEFAULT, &s_indexBuf, NULL);
@@ -390,7 +459,6 @@ void InitDirectX9(HWND hWnd)
 	pIndices[0] = 0; pIndices[1] = 1; pIndices[2] = 2;
 	pIndices[3] = 0; pIndices[4] = 2; pIndices[5] = 3;
 
-
 	s_indexBuf->Unlock();
 
 }
@@ -400,24 +468,26 @@ void InitDirectX9(HWND hWnd)
 void RenderVideo()
 {
 	s_device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
-		D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+		D3DCOLOR_XRGB(255, 255, 255), 1.0f, 0);
 	s_device->BeginScene();
 
 												
-
-	s_device->SetStreamSource(0, s_vertexBuf, 0, sizeof(VideoVertex));
-	s_device->SetFVF(D3DFVF_VideoVertex);
-	s_device->SetIndices(s_indexBuf);
-	
-	if (s_videoTexture)
+	for (int i = 0; i < 2; ++i)
 	{
-		s_device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-		s_device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-		s_device->SetTexture(0, s_videoTexture);
+		s_device->SetStreamSource(0, s_vertexBuf[i], 0, sizeof(VideoVertex));
+		s_device->SetFVF(D3DFVF_VideoVertex);
+		s_device->SetIndices(s_indexBuf);
+
+		if (s_videoTexture)
+		{
+			s_device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+			s_device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+			s_device->SetTexture(0, s_videoTexture[i]);
+		}
+
+
+		s_device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2);
 	}
-		
-	
-	s_device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 4, 0, 2);
 
 	s_device->EndScene();
 	s_device->Present(NULL, NULL, NULL, NULL);

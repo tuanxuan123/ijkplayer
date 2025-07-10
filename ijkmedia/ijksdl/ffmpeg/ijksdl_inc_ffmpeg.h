@@ -30,7 +30,6 @@
 #include "libavutil/frame.h"
 #include "libavutil/common.h"
 #include "libavcodec/avcodec.h"
-#include "libswscale/swscale.h"
 
 
 

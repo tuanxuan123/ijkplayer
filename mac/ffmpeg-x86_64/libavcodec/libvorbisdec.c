@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <vorbis/vorbisenc.h>
+#include "vorbis/vorbisenc.h"
 
 #include "avcodec.h"
 #include "bytestream.h"

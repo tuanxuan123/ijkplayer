@@ -25,15 +25,10 @@
 #ifndef IJKSDL_ANDROID__IJKSDL_VOUT_OVERLAY_ANDROID_MEDIACODEC_H
 #define IJKSDL_ANDROID__IJKSDL_VOUT_OVERLAY_ANDROID_MEDIACODEC_H
 
-#include "../ijksdl_stdinc.h"
 #include "../ijksdl_vout.h"
 
-typedef struct SDL_AMediaCodec           SDL_AMediaCodec;
-typedef struct SDL_AMediaCodecBufferInfo SDL_AMediaCodecBufferInfo;
 
 SDL_VoutOverlay *SDL_VoutAMediaCodec_CreateOverlay(int width, int height, SDL_Vout *vout);
 
-bool SDL_VoutOverlayAMediaCodec_isKindOf(SDL_VoutOverlay *overlay);
-int  SDL_VoutOverlayAMediaCodec_releaseFrame_l(SDL_VoutOverlay *overlay, SDL_AMediaCodec *acodec, bool render);
 
 #endif

@@ -25,10 +25,11 @@
 #include "ijksdl_vout.h"
 #include <stdlib.h>
 
-#include <assert.h>
 #if defined(__ANDROID__)
 #include <android/native_window_jni.h>
 #endif
+
+
 
 void SDL_VoutFree(SDL_Vout *vout)
 {
@@ -53,12 +54,20 @@ void SDL_VoutFreeP(SDL_Vout **pvout)
 
 int SDL_VoutDisplayYUVOverlay(SDL_Vout *vout, SDL_VoutOverlay *overlay)
 {
-    
-    if(vout && overlay && vout->frame_callback)
+    if(vout && overlay)
     {
-        vout->frame_callback(overlay);
-        return 0;
+        if(overlay->format == SDL_FCC__AMC) {
+            //mediacodec_release
+            vout->display_overlay(vout, overlay);
+        } else {
+            SDL_LockMutex(vout->mutex);
+            if(vout->frame_callback) {
+                vout->frame_callback(overlay, vout->player);
+            }
+            SDL_UnlockMutex(vout->mutex);
+        }
         
+        return 0;
     }
 
     return -1;
@@ -124,11 +133,14 @@ int SDL_VoutFillFrameYUVOverlay(SDL_VoutOverlay *overlay, const AVFrame *frame)
 }
 
 
-int  SDL_VoutSetFrameCallback(SDL_Vout *vout, void(*callback)(SDL_VoutOverlay *overlay))
+int  SDL_VoutSetFrameCallback(SDL_Vout *vout, void(*callback)(SDL_VoutOverlay *overlay, void *player))
 {
     if (!vout)
         return -1;
     
+    SDL_LockMutex(vout->mutex);
     vout->frame_callback = callback;
+    SDL_UnlockMutex(vout->mutex);
+
     return 0;
 }

@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "ff_redefine.h"
 
 // media meta
 #define IJKM_KEY_FORMAT         "format"

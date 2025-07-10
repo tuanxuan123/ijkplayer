@@ -37,7 +37,8 @@ typedef struct IjkMediaPlayer IjkMediaPlayer;
 struct FFPlayer;
 struct SDL_Vout;
 
-typedef  void (*ijkmp_frame_callback)(SDL_VoutOverlay* overlay);
+typedef  void (*ijkmp_frame_callback)(SDL_VoutOverlay *overlay, void *player);
+typedef  void (*ijkmp_video_end_callback)(int tag);
 
 /*-
  MPST_CHECK_NOT_RET(mp->mp_state, MP_STATE_IDLE);
@@ -158,7 +159,6 @@ void            ijkmp_global_uninit();
 void            ijkmp_global_set_log_report(int use_report);
 void            ijkmp_global_set_log_level(int log_level);   // log_level = AV_LOG_xxx
 void            ijkmp_global_set_inject_callback(ijk_inject_callback cb);
-const char     *ijkmp_version();
 void            ijkmp_io_stat_register(void (*cb)(const char *url, int type, int bytes));
 void            ijkmp_io_stat_complete_register(void (*cb)(const char *url,
                                                            int64_t read_bytes, int64_t total_size,
@@ -166,8 +166,8 @@ void            ijkmp_io_stat_complete_register(void (*cb)(const char *url,
 
 // ref_count is 1 after open
 IjkMediaPlayer *ijkmp_create(int (*msg_loop)(void*));
-void*            ijkmp_set_inject_opaque(IjkMediaPlayer *mp, void *opaque);
-void*            ijkmp_set_ijkio_inject_opaque(IjkMediaPlayer *mp, void *opaque);
+void*           ijkmp_set_inject_opaque(IjkMediaPlayer *mp, void *opaque);
+void            ijkmp_create_ijkio_context(IjkMediaPlayer *mp);
 
 void            ijkmp_set_option(IjkMediaPlayer *mp, int opt_category, const char *name, const char *value);
 void            ijkmp_set_option_int(IjkMediaPlayer *mp, int opt_category, const char *name, int64_t value);
@@ -175,7 +175,7 @@ void            ijkmp_set_option_int(IjkMediaPlayer *mp, int opt_category, const
 int             ijkmp_get_video_codec_info(IjkMediaPlayer *mp, char **codec_info);
 int             ijkmp_get_audio_codec_info(IjkMediaPlayer *mp, char **codec_info);
 void            ijkmp_set_playback_rate(IjkMediaPlayer *mp, float rate);
-void            ijkmp_set_playback_volume(IjkMediaPlayer *mp, float rate);
+void            ijkmp_set_playback_volume(IjkMediaPlayer *mp, float volume);
 
 int             ijkmp_set_stream_selected(IjkMediaPlayer *mp, int stream, int selected);
 
@@ -184,6 +184,7 @@ void            ijkmp_set_property_float(IjkMediaPlayer *mp, int id, float value
 int64_t         ijkmp_get_property_int64(IjkMediaPlayer *mp, int id, int64_t default_value);
 void            ijkmp_set_property_int64(IjkMediaPlayer *mp, int id, int64_t value);
 
+
 // must be freed with free();
 IjkMediaMeta   *ijkmp_get_meta_l(IjkMediaPlayer *mp);
 
@@ -191,12 +192,7 @@ IjkMediaMeta   *ijkmp_get_meta_l(IjkMediaPlayer *mp);
 // NOTE: ijkmp_shutdown may block thread
 void            ijkmp_shutdown(IjkMediaPlayer *mp);
 
-void            ijkmp_inc_ref(IjkMediaPlayer *mp);
-
-// call close at last release, also free memory
-// NOTE: ijkmp_dec_ref may block thread
-void            ijkmp_dec_ref(IjkMediaPlayer *mp);
-void            ijkmp_dec_ref_p(IjkMediaPlayer **pmp);
+void            ijkmp_destroy(IjkMediaPlayer *mp);
 
 int             ijkmp_set_data_source(IjkMediaPlayer *mp, const char *url);
 int             ijkmp_prepare_async(IjkMediaPlayer *mp);
@@ -220,6 +216,14 @@ void           *ijkmp_set_weak_thiz(IjkMediaPlayer *mp, void *weak_thiz);
 int             ijkmp_get_msg(IjkMediaPlayer *mp, AVMessage *msg, int block);
 void            ijkmp_set_frame_at_time(IjkMediaPlayer *mp, const char *path, int64_t start_time, int64_t end_time, int num, int definition);
 void            ijkmp_set_frame_callback(IjkMediaPlayer *mp, ijkmp_frame_callback callback);
-void            ijkmp_update(IjkMediaPlayer *mp);
+void 			ijkmp_set_video_end_callback(IjkMediaPlayer *mp, ijkmp_video_end_callback callback);
+
+void 			ijkmp_set_volume(IjkMediaPlayer *mp, float left, float right);
+double          ijkmp_get_master_clock(IjkMediaPlayer *mp);
+void            ijkmp_release_nativewindow(IjkMediaPlayer *mp);
+void            ijkmp_enable_seek_and_pause(IjkMediaPlayer *mp);
+void            ijkmp_step_to_next_frame(IjkMediaPlayer *mp);
+void            ijkmp_copy_player_properties(IjkMediaPlayer *src, IjkMediaPlayer *dst);
+void            ijkmp_cancel_seek(IjkMediaPlayer *mp);
 
 #endif

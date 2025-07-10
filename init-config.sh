@@ -16,7 +16,6 @@
 # limitations under the License.
 #
 
-#if config/module.sh doesn't exist
 if [ ! -f 'config/module.sh' ]; then
     cp config/module-lite.sh config/module.sh
 fi

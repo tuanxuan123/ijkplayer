@@ -37,7 +37,7 @@ IJKFF_Pipenode *ffpipenode_alloc(size_t opaque_size)
         free(node);
         return NULL;
     }
-
+    
     node->mutex = SDL_CreateMutex();
     if (node->mutex == NULL) {
         free(node->opaque);
@@ -85,3 +85,13 @@ int ffpipenode_flush(IJKFF_Pipenode *node)
 
     return node->func_flush(node);
 }
+
+
+int ffpipenode_stop(IJKFF_Pipenode *node)
+{
+    if (!node || !node->func_stop)
+        return 0;
+
+    return node->func_stop(node);
+}
+

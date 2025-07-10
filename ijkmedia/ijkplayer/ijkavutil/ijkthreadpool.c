@@ -23,6 +23,7 @@
 #include "libavutil/log.h"
 
 #include <stdlib.h>
+#include <pthread.h>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -39,6 +40,19 @@ static void *ijk_threadpool_thread(void *pool_ctx)
 {
     IjkThreadPoolContext *ctx = (IjkThreadPoolContext *)pool_ctx;
     IjkThreadPoolTask task;
+
+    int ret = 0;
+#if !defined(__APPLE__)
+#ifndef _WIN32
+    ret = pthread_setname_np(pthread_self(), "ijk_threadpool"); /* 给线程池设置thread name */
+#endif
+#else
+    ret = pthread_setname_np("ijk_threadpool"); /* 给线程池设置thread name */
+#endif
+    if (ret != 0)
+    {
+        av_log(ctx, AV_LOG_ERROR, "ijk_threadpool_thread: set thread name ijk_threadpool failed, ret=%d\n", ret);
+    }
 
     for(;;) {
         pthread_mutex_lock(&(ctx->lock));

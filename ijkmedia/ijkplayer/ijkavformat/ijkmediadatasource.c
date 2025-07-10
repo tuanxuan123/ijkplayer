@@ -20,8 +20,6 @@
  */
 
 #ifdef __ANDROID__
-
-#include <assert.h>
 #include "libavformat/avformat.h"
 #include "libavformat/url.h"
 #include "libavutil/avstring.h"

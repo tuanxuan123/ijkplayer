@@ -13,6 +13,11 @@
 
 // Include header shared between C code here, which executes Metal API commands, and .metal files
 #import "ShaderTypes.h"
+#include "h5_player.h"
+#include "pandora_player.h"
+
+
+
 
 
 typedef struct
@@ -23,7 +28,6 @@ typedef struct
 
 static const NSUInteger kMaxBuffersInFlight = 3;
 
-static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
 
 @implementation Renderer
 {
@@ -31,29 +35,14 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     id <MTLDevice> _device;
     id <MTLCommandQueue> _commandQueue;
 
-    id <MTLBuffer> _dynamicUniformBuffer;
     id <MTLRenderPipelineState> _pipelineState;
     id <MTLDepthStencilState> _depthState;
     id <MTLTexture> _colorMap;
-    id <MTLTexture> _videoTexture;
-    id <MTLBuffer> _vertexBuffer;
+    id <MTLTexture> _videoTextures[2];
+    id <MTLBuffer> _vertexBuffers[2];
     id <MTLRenderPipelineState> _pipelineVideo;
     MTLVertexDescriptor *_mtlVertexDescriptor;
 
-    uint32_t _uniformBufferOffset;
-
-    uint8_t _uniformBufferIndex;
-
-    void* _uniformBufferAddress;
-
-    matrix_float4x4 _projectionMatrix;
-
-    float _rotation;
-
-    MTKMesh *_mesh;
-    
-    id <MTLBuffer>  _posBuffer;
-    id <MTLBuffer>  _uvBuffer;
 }
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)view;
@@ -70,17 +59,23 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     return self;
 }
 
--(void)updateVideoTexture:(int)index w:(int)w h:(int)h data:(unsigned char*)data;
+-(void)updateVideoTexture:(int)w h:(int)h data:(unsigned char*)data tag:(int)tag;
 {
-    if(_videoTexture == nil || _videoTexture.width != w || _videoTexture.height != h)
+    int index;
+    if(tag == _VideoTag1)
+        index = 0;
+    else
+        index = 1;
+    
+    if(_videoTextures[index] == nil || _videoTextures[index].width != w || _videoTextures[index].height != h)
     {
         MTLTextureDescriptor* textureDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm_sRGB width:w height:h mipmapped:NO];
-        _videoTexture = [_device newTextureWithDescriptor:textureDesc];
+        _videoTextures[index] = [_device newTextureWithDescriptor:textureDesc];
         
     }
     
     MTLRegion region = MTLRegionMake2D(0, 0, w, h);
-    [_videoTexture replaceRegion:region mipmapLevel:0 withBytes:data bytesPerRow:4*w];
+    [_videoTextures[index] replaceRegion:region mipmapLevel:0 withBytes:data bytesPerRow:4*w];
     
 }
 
@@ -140,12 +135,7 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     depthStateDesc.depthWriteEnabled = YES;
     _depthState = [_device newDepthStencilStateWithDescriptor:depthStateDesc];
 
-    NSUInteger uniformBufferSize = kAlignedUniformsSize * kMaxBuffersInFlight;
 
-    _dynamicUniformBuffer = [_device newBufferWithLength:uniformBufferSize
-                                                 options:MTLResourceStorageModeShared];
-
-    _dynamicUniformBuffer.label = @"UniformBuffer";
 
     _commandQueue = [_device newCommandQueue];
 }
@@ -193,43 +183,33 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
 
 - (void)makeBuffer
 {
-    static const PlaneVertex vertices[] =
+    static const PlaneVertex vertices1[] =
     {
-        { .position = {  -0.5,  0.5, 0.0}, .texCoord = { 0.0, 0.0} },
-        { .position = { -0.5, -0.5, 0.0}, .texCoord = { 0.0, 1.0} },
-        { .position = {  0.5,  0.5, 0.0}, .texCoord = { 1.0, 0.0} },
+        { .position = {  -0.95,  0.35, 0.0}, .texCoord = { 0.0, 0.0} },
+        { .position = { -0.95, -0.35, 0.0}, .texCoord = { 0.0, 1.0} },
+        { .position = {  -0.05,  0.35, 0.0}, .texCoord = { 1.0, 0.0} },
         
-        { .position = {  0.5,  0.5, 0.0}, .texCoord = { 1.0, 0.0} },
-        { .position = { -0.5, -0.5, 0.0}, .texCoord = { 0.0, 1.0} },
-        { .position = {  0.5, -0.5, 0.0}, .texCoord = { 1.0, 1.0} },
+        { .position = { -0.05,  0.35, 0.0}, .texCoord = { 1.0, 0.0} },
+        { .position = { -0.95, -0.35, 0.0}, .texCoord = { 0.0, 1.0} },
+        { .position = { -0.05, -0.35, 0.0}, .texCoord = { 1.0, 1.0} },
     };
     
-    static const vector_float3 positions[] =
+    if(_vertexBuffers[0] == nil)
+        _vertexBuffers[0] = [_device newBufferWithBytes:vertices1 length:sizeof(vertices1) options:MTLResourceOptionCPUCacheModeDefault];
+
+    static const PlaneVertex vertices2[] =
     {
-        {-0.5,  0.5, 0.0},
-        {-0.5, -0.5, 0.0},
-        {0.5,  0.5, 0.0},
-        {0.5,  0.5, 0.0},
-        {-0.5, -0.5, 0.0},
-        {0.5, -0.5, 0.0},
+        { .position = {  0.05,  0.35, 0.0}, .texCoord = { 0.0, 0.0} },
+        { .position = {  0.05, -0.35, 0.0}, .texCoord = { 0.0, 1.0} },
+        { .position = {  0.95,  0.35, 0.0}, .texCoord = { 1.0, 0.0} },
+        
+        { .position = {  0.95,  0.35, 0.0}, .texCoord = { 1.0, 0.0} },
+        { .position = {  0.05, -0.35, 0.0}, .texCoord = { 0.0, 1.0} },
+        { .position = {  0.95, -0.35, 0.0}, .texCoord = { 1.0, 1.0} },
     };
     
-    static const vector_float2 uvs[] =
-    {
-        {0.0, 0.0},
-        {0.0, 1.0},
-        {1.0, 0.0},
-        {1.0, 0.0},
-        {0.0, 1.0},
-        {1.0, 1.0},
-    };
-    
-    if(_vertexBuffer == nil)
-        _vertexBuffer = [_device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceOptionCPUCacheModeDefault];
-    
-    _posBuffer = [_device newBufferWithBytes:positions length:sizeof(positions) options:MTLResourceOptionCPUCacheModeDefault];
-    _uvBuffer = [_device newBufferWithBytes:uvs length:sizeof(uvs) options:MTLResourceOptionCPUCacheModeDefault];
-    
+    if(_vertexBuffers[1] == nil)
+        _vertexBuffers[1] = [_device newBufferWithBytes:vertices2 length:sizeof(vertices2) options:MTLResourceOptionCPUCacheModeDefault];
 }
 
 - (void)_loadAssets
@@ -238,32 +218,7 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
 
     NSError *error;
 
-    MTKMeshBufferAllocator *metalAllocator = [[MTKMeshBufferAllocator alloc]
-                                              initWithDevice: _device];
 
-    MDLMesh *mdlMesh = [MDLMesh newBoxWithDimensions:(vector_float3){4, 4, 4}
-                                            segments:(vector_uint3){2, 2, 2}
-                                        geometryType:MDLGeometryTypeTriangles
-                                       inwardNormals:NO
-                                           allocator:metalAllocator];
-
-
-    MDLVertexDescriptor *mdlVertexDescriptor =
-    MTKModelIOVertexDescriptorFromMetal(_mtlVertexDescriptor);
-
-    mdlVertexDescriptor.attributes[VertexAttributePosition].name  = MDLVertexAttributePosition;
-    mdlVertexDescriptor.attributes[VertexAttributeTexcoord].name  = MDLVertexAttributeTextureCoordinate;
-
-    mdlMesh.vertexDescriptor = mdlVertexDescriptor;
-
-    _mesh = [[MTKMesh alloc] initWithMesh:mdlMesh
-                                   device:_device
-                                    error:&error];
-
-    if(!_mesh || error)
-    {
-        NSLog(@"Error creating MetalKit mesh %@", error.localizedDescription);
-    }
 
     MTKTextureLoader* textureLoader = [[MTKTextureLoader alloc] initWithDevice:_device];
 
@@ -288,38 +243,15 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     
 }
 
-- (void)_updateDynamicBufferState
-{
-    /// Update the state of our uniform buffers before rendering
 
-    _uniformBufferIndex = (_uniformBufferIndex + 1) % kMaxBuffersInFlight;
 
-    _uniformBufferOffset = kAlignedUniformsSize * _uniformBufferIndex;
 
-    _uniformBufferAddress = ((uint8_t*)_dynamicUniformBuffer.contents) + _uniformBufferOffset;
-}
-
-- (void)_updateGameState
-{
-    /// Update any game state before encoding renderint commands to our drawable
-
-    Uniforms * uniforms = (Uniforms*)_uniformBufferAddress;
-
-    uniforms->projectionMatrix = _projectionMatrix;
-
-    vector_float3 rotationAxis = {1, 1, 0};
-    matrix_float4x4 modelMatrix = matrix4x4_rotation(_rotation, rotationAxis);
-    matrix_float4x4 viewMatrix = matrix4x4_translation(-15.0, 0.0, -20.0);
-
-    uniforms->modelViewMatrix = matrix_multiply(viewMatrix, modelMatrix);
-
-    _rotation += .01;
-}
 
 - (void)drawInMTKView:(nonnull MTKView *)view
 {
-    /// Per frame updates here
-    h5_video_update();
+    //update video
+    h5_video_update(_VideoTag1);
+    pandora_video_update(_VideoTag2);
     
     dispatch_semaphore_wait(_inFlightSemaphore, DISPATCH_TIME_FOREVER);
 
@@ -332,9 +264,7 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
          dispatch_semaphore_signal(block_sema);
      }];
 
-    [self _updateDynamicBufferState];
 
-    [self _updateGameState];
 
     /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
     ///   holding onto the drawable and blocking the display pipeline any longer than necessary
@@ -345,54 +275,13 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
 
         id <MTLRenderCommandEncoder> renderEncoder =
         [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-        renderEncoder.label = @"MyRenderEncoder";
+        renderEncoder.label = @"VideoRenderEncoder";
         
-        [renderEncoder pushDebugGroup:@"DrawBox"];
-        [renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
+        [renderEncoder pushDebugGroup:@"DrawVideo"];
         [renderEncoder setCullMode:MTLCullModeBack];
         [renderEncoder setRenderPipelineState:_pipelineState];
         [renderEncoder setDepthStencilState:_depthState];
 
-        [renderEncoder setVertexBuffer:_dynamicUniformBuffer
-                                offset:_uniformBufferOffset
-                               atIndex:BufferIndexUniforms];
-
-        [renderEncoder setFragmentBuffer:_dynamicUniformBuffer
-                                  offset:_uniformBufferOffset
-                                 atIndex:BufferIndexUniforms];
-
-        
-        for (NSUInteger bufferIndex = 0; bufferIndex < _mesh.vertexBuffers.count; bufferIndex++)
-        {
-            MTKMeshBuffer *vertexBuffer = _mesh.vertexBuffers[bufferIndex];
-            if((NSNull*)vertexBuffer != [NSNull null])
-            {
-                [renderEncoder setVertexBuffer:vertexBuffer.buffer
-                                        offset:vertexBuffer.offset
-                                       atIndex:bufferIndex];
-            }
-        }
-        
-        if(_videoTexture)
-        {
-            [renderEncoder setFragmentTexture:_videoTexture
-                                      atIndex:TextureIndexColor];
-        }
-        else
-        {
-            [renderEncoder setFragmentTexture:_colorMap
-                                  atIndex:TextureIndexColor];
-        }
-
-        for(MTKSubmesh *submesh in _mesh.submeshes)
-        {
-            [renderEncoder drawIndexedPrimitives:submesh.primitiveType
-                                      indexCount:submesh.indexCount
-                                       indexType:submesh.indexType
-                                     indexBuffer:submesh.indexBuffer.buffer
-                               indexBufferOffset:submesh.indexBuffer.offset];
-        }
-        
         [self drawVideo:renderEncoder];
         [renderEncoder popDebugGroup];
 
@@ -414,31 +303,31 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     [encoder setRenderPipelineState:_pipelineVideo];
     [encoder setDepthStencilState:_depthState];
     
-    [encoder setVertexBuffer:_vertexBuffer offset:0 atIndex:0];
-    //[encoder setVertexBuffer:_posBuffer offset:0 atIndex:0];
-    //[encoder setVertexBuffer:_uvBuffer offset:0 atIndex:1];
+    
 
-    if(_videoTexture)
+    for(int i = 0; i < 2; ++i)
     {
-        [encoder setFragmentTexture:_videoTexture
-                                  atIndex:TextureIndexColor];
+        [encoder setVertexBuffer:_vertexBuffers[i] offset:0 atIndex:0];
+        if(_videoTextures[i])
+        {
+            [encoder setFragmentTexture:_videoTextures[i]
+                                atIndex:TextureIndexColor];
+        }
+        else
+        {
+            [encoder setFragmentTexture:_colorMap
+                                atIndex:TextureIndexColor];
+        }
+        
+        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
     }
-    else
-    {
-        [encoder setFragmentTexture:_colorMap
-                                  atIndex:TextureIndexColor];
-    }
-   
-    [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+    
  
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
-    /// Respond to drawable size or orientation changes here
 
-    float aspect = size.width / (float)size.height;
-    _projectionMatrix = matrix_perspective_right_hand(65.0f * (M_PI / 180.0f), aspect, 0.1f, 100.0f);
 }
 
 #pragma mark Matrix Math Utilities

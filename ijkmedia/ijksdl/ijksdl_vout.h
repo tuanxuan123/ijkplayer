@@ -31,6 +31,7 @@
 #include "ijksdl_video.h"
 #include "ffmpeg/ijksdl_inc_ffmpeg.h"
 
+
 typedef struct SDL_VoutOverlay_Opaque SDL_VoutOverlay_Opaque;
 typedef struct SDL_VoutOverlay SDL_VoutOverlay;
 struct SDL_VoutOverlay {
@@ -41,7 +42,10 @@ struct SDL_VoutOverlay {
     Uint16 *pitches; /**< in bytes, Read-only */
     Uint8 **pixels; /**< Read-write */
 
+    int render;
+
     int is_private;
+    int output_buffer_index; //mediacodec output buffer index
 
     int sar_num;
     int sar_den;
@@ -70,7 +74,12 @@ struct SDL_Vout {
 
     Uint32 overlay_format;
 
-    void (*frame_callback)(SDL_VoutOverlay *overlay);
+    void (*frame_callback)(SDL_VoutOverlay *overlay, void *player);
+    void (*video_end_callback)(int tag);
+
+    int tag;
+	void *player;
+    void *target;
 };
 
 void SDL_VoutFree(SDL_Vout *vout);
@@ -84,6 +93,6 @@ int     SDL_VoutUnlockYUVOverlay(SDL_VoutOverlay *overlay);
 void    SDL_VoutFreeYUVOverlay(SDL_VoutOverlay *overlay);
 void    SDL_VoutUnrefYUVOverlay(SDL_VoutOverlay *overlay);
 int     SDL_VoutFillFrameYUVOverlay(SDL_VoutOverlay *overlay, const AVFrame *frame);
-int     SDL_VoutSetFrameCallback(SDL_Vout *vout, void(*callback)(SDL_VoutOverlay *overlay));
+int     SDL_VoutSetFrameCallback(SDL_Vout *vout, void(*callback)(SDL_VoutOverlay *overlay, void *player));
 
 #endif

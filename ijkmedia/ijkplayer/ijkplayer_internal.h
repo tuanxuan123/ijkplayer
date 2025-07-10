@@ -24,17 +24,10 @@
 #ifndef IJKPLAYER_ANDROID__IJKPLAYER_INTERNAL_H
 #define IJKPLAYER_ANDROID__IJKPLAYER_INTERNAL_H
 
-#include <assert.h>
-
 #include "ff_fferror.h"
 #include "ff_ffplay.h"
 #include "ijkplayer.h"
-
-#ifdef _WIN32
-#include "../ijksdl/ijksdl.h"
-#else
 #include "ijksdl/ijksdl.h"
-#endif // _WIN32
 
 
 struct IjkMediaPlayer {
@@ -48,12 +41,14 @@ struct IjkMediaPlayer {
 
     int mp_state;
     char *data_source;
+    char *url_md5;
+    char *encrypted_url;
     void *weak_thiz;
 
     int restart;
     int restart_from_beginning;
-    int seek_req;
     long seek_msec;
+    int tag;
 };
 
 #endif

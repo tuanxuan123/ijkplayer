@@ -2,9 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:demo/demo.xcodeproj">
+      location = "group:demo/../PixVideo/PixVideo.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:videoplayer/videoplayer.xcodeproj">
+      location = "group:demo/demo.xcodeproj">
    </FileRef>
 </Workspace>

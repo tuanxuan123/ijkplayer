@@ -55,7 +55,8 @@ FF_DEP_LIBSOXR_LIB=
 FF_CFG_FLAGS=
 
 FF_EXTRA_CFLAGS=
-FF_EXTRA_LDFLAGS=
+FF_EXTRA_LDFLAGS="-Wl,-z,max-page-size=16384"  # 添加安卓16k pagesize选项
+FF_EXTRA_LDFLAGS="$FF_EXTRA_LDFLAGS -Wl,-z,common-page-size=16384"  # 添加安卓16k pagesize选项
 FF_DEP_LIBS=
 
 FF_MODULE_DIRS="compat libavcodec libavfilter libavformat libavutil libswresample libswscale"
@@ -79,7 +80,7 @@ if [ "$FF_ARCH" = "armv7a" ]; then
     FF_BUILD_NAME=ffmpeg-armv7a
     FF_BUILD_NAME_OPENSSL=openssl-armv7a
     FF_BUILD_NAME_LIBSOXR=libsoxr-armv7a
-    FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
+    FF_SOURCE="$FF_BUILD_ROOT/ffmpeg-arm64"
 
     FF_CROSS_PREFIX=arm-linux-androideabi
     FF_TOOLCHAIN_NAME=${FF_CROSS_PREFIX}-${FF_GCC_VER}
@@ -97,7 +98,7 @@ elif [ "$FF_ARCH" = "armv5" ]; then
     FF_BUILD_NAME=ffmpeg-armv5
     FF_BUILD_NAME_OPENSSL=openssl-armv5
     FF_BUILD_NAME_LIBSOXR=libsoxr-armv5
-    FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
+    FF_SOURCE="$FF_BUILD_ROOT/ffmpeg-arm64"
 
     FF_CROSS_PREFIX=arm-linux-androideabi
     FF_TOOLCHAIN_NAME=${FF_CROSS_PREFIX}-${FF_GCC_VER}
@@ -113,7 +114,7 @@ elif [ "$FF_ARCH" = "x86" ]; then
     FF_BUILD_NAME=ffmpeg-x86
     FF_BUILD_NAME_OPENSSL=openssl-x86
     FF_BUILD_NAME_LIBSOXR=libsoxr-x86
-    FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
+    FF_SOURCE="$FF_BUILD_ROOT/ffmpeg-arm64"
 
     FF_CROSS_PREFIX=i686-linux-android
     FF_TOOLCHAIN_NAME=x86-${FF_GCC_VER}
@@ -131,7 +132,7 @@ elif [ "$FF_ARCH" = "x86_64" ]; then
     FF_BUILD_NAME=ffmpeg-x86_64
     FF_BUILD_NAME_OPENSSL=openssl-x86_64
     FF_BUILD_NAME_LIBSOXR=libsoxr-x86_64
-    FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
+    FF_SOURCE="$FF_BUILD_ROOT/ffmpeg-arm64"
 
     FF_CROSS_PREFIX=x86_64-linux-android
     FF_TOOLCHAIN_NAME=${FF_CROSS_PREFIX}-${FF_GCC_64_VER}
@@ -149,7 +150,7 @@ elif [ "$FF_ARCH" = "arm64" ]; then
     FF_BUILD_NAME=ffmpeg-arm64
     FF_BUILD_NAME_OPENSSL=openssl-arm64
     FF_BUILD_NAME_LIBSOXR=libsoxr-arm64
-    FF_SOURCE=$FF_BUILD_ROOT/$FF_BUILD_NAME
+    FF_SOURCE="$FF_BUILD_ROOT/ffmpeg-arm64"
 
     FF_CROSS_PREFIX=aarch64-linux-android
     FF_TOOLCHAIN_NAME=${FF_CROSS_PREFIX}-${FF_GCC_64_VER}
@@ -180,10 +181,13 @@ FF_MAKE_TOOLCHAIN_FLAGS="$FF_MAKE_TOOLCHAIN_FLAGS --install-dir=$FF_TOOLCHAIN_PA
 
 FF_SYSROOT=$FF_TOOLCHAIN_PATH/sysroot
 FF_PREFIX=$FF_BUILD_ROOT/build/$FF_BUILD_NAME/output
-FF_DEP_OPENSSL_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/include
-FF_DEP_OPENSSL_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/lib
 FF_DEP_LIBSOXR_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_LIBSOXR/output/include
 FF_DEP_LIBSOXR_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_LIBSOXR/output/lib
+
+FF_DEP_VORBIS_INC=$FF_BUILD_ROOT/libvorbis/include
+FF_DEP_VORBIS_LIB=$FF_BUILD_ROOT/libvorbis/lib/$FF_ARCH
+FF_DEP_OPENSSL_INC=$FF_BUILD_ROOT/openssl/include
+FF_DEP_OPENSSL_LIB=$FF_BUILD_ROOT/openssl/lib/$FF_ARCH
 
 case "$UNAME_S" in
     CYGWIN_NT-*)
@@ -235,28 +239,48 @@ FF_CFLAGS="-O3 -Wall -pipe \
 # not necessary
 #FF_CFLAGS="$FF_CFLAGS -finline-limit=300"
 
-export COMMON_FF_CFG_FLAGS=
-. $FF_BUILD_ROOT/../../config/module.sh
+case "$FF_BUILD_OPT" in
+    mini)
+    export COMMON_FF_CFG_FLAGS=
+    . $FF_BUILD_ROOT/../../config/module-mini.sh
+
+    ;;
+    *)
+        
+    export COMMON_FF_CFG_FLAGS=
+    . $FF_BUILD_ROOT/../../config/module.sh
 
 
-#--------------------
-# with openssl
-if [ -f "${FF_DEP_OPENSSL_LIB}/libssl.a" ]; then
-    echo "OpenSSL detected"
-# FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-nonfree"
-    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-openssl"
+    #--------------------
+    # with openssl
+    if [ -f "${FF_DEP_OPENSSL_LIB}/libssl.a" ]; then
+        echo "OpenSSL detected"
+    # FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-nonfree"
+        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-openssl"
 
-    FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_OPENSSL_INC}"
-    FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_OPENSSL_LIB} -lssl -lcrypto"
-fi
+        FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_OPENSSL_INC}"
+        FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_OPENSSL_LIB} -lssl -lcrypto"
+    fi
 
-if [ -f "${FF_DEP_LIBSOXR_LIB}/libsoxr.a" ]; then
-    echo "libsoxr detected"
-    FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libsoxr"
 
-    FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_LIBSOXR_INC}"
-    FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_LIBSOXR_LIB} -lsoxr"
-fi
+    if [ -f "${FF_DEP_VORBIS_LIB}/libvorbis.a" ]; then
+        echo "Vorbis detected"
+        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libvorbis"
+
+        FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_VORBIS_INC}"
+        FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_VORBIS_LIB} -lvorbis -logg -lm"
+    fi
+
+    if [ -f "${FF_DEP_LIBSOXR_LIB}/libsoxr.a" ]; then
+        echo "libsoxr detected"
+        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-libsoxr"
+
+        FF_CFLAGS="$FF_CFLAGS -I${FF_DEP_LIBSOXR_INC}"
+        FF_DEP_LIBS="$FF_DEP_LIBS -L${FF_DEP_LIBSOXR_LIB} -lsoxr"
+    fi
+
+    ;;
+esac
 
 FF_CFG_FLAGS="$FF_CFG_FLAGS $COMMON_FF_CFG_FLAGS"
 
@@ -286,9 +310,12 @@ case "$FF_BUILD_OPT" in
         FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-small"
     ;;
     *)
+        #优化ffmpeg体积
         FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-optimizations"
-        FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-debug"
+        FF_CFG_FLAGS="$FF_CFG_FLAGS --disable-debug"
         FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-small"
+        # 后续工具strip FF_CFG_FLAGS="$FF_CFG_FLAGS --enable-stripping"
+        FF_EXTRA_CFLAGS="$FF_EXTRA_CFLAGS -s"
     ;;
 esac
 
@@ -298,15 +325,13 @@ echo "--------------------"
 echo "[*] configurate ffmpeg"
 echo "--------------------"
 cd $FF_SOURCE
-if [ -f "./config.h" ]; then
-    echo 'reuse configure'
-else
-    which $CC
-    ./configure $FF_CFG_FLAGS \
-        --extra-cflags="$FF_CFLAGS $FF_EXTRA_CFLAGS" \
-        --extra-ldflags="$FF_DEP_LIBS $FF_EXTRA_LDFLAGS"
-    make clean
-fi
+
+which $CC
+./configure $FF_CFG_FLAGS \
+    --extra-cflags="$FF_CFLAGS $FF_EXTRA_CFLAGS -s" \
+    --extra-ldflags="$FF_DEP_LIBS $FF_EXTRA_LDFLAGS" 
+make clean
+
 
 #--------------------
 echo ""
@@ -353,6 +378,13 @@ $CC -lm -lz -shared --sysroot=$FF_SYSROOT -Wl,--no-undefined -Wl,-z,noexecstack 
     $FF_DEP_LIBS \
     -o $FF_PREFIX/libijkffmpeg.so
 
+$CC -lm -lz -shared --sysroot=$FF_SYSROOT -Wl,--no-undefined -Wl,-z,noexecstack $FF_EXTRA_LDFLAGS \
+    -Wl,-soname,libPixFFmpeg.so \
+    $FF_C_OBJ_FILES \
+    $FF_ASM_OBJ_FILES \
+    $FF_DEP_LIBS \
+    -o $FF_PREFIX/libPixFFmpeg.so
+
 mysedi() {
     f=$1
     exp=$2
@@ -370,6 +402,9 @@ rm -rf $FF_PREFIX/shared
 mkdir -p $FF_PREFIX/shared/lib/pkgconfig
 ln -s $FF_PREFIX/include $FF_PREFIX/shared/include
 ln -s $FF_PREFIX/libijkffmpeg.so $FF_PREFIX/shared/lib/libijkffmpeg.so
+cp $FF_PREFIX/libPixFFmpeg.so $FF_PREFIX/libPixFFmpeg.so.symbol
+${FF_CROSS_PREFIX}-strip -s -x $FF_PREFIX/libPixFFmpeg.so
+ln -s $FF_PREFIX/libPixFFmpeg.so $FF_PREFIX/shared/lib/libPixFFmpeg.so
 cp $FF_PREFIX/lib/pkgconfig/*.pc $FF_PREFIX/shared/lib/pkgconfig
 for f in $FF_PREFIX/lib/pkgconfig/*.pc; do
     # in case empty dir

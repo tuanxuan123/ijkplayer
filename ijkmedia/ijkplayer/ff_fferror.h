@@ -29,5 +29,6 @@
 #define EIJK_OUT_OF_MEMORY      -2
 #define EIJK_INVALID_STATE      -3
 #define EIJK_NULL_IS_PTR        -4
+#define EIJK_ARG_INVALID   -5
 
 #endif

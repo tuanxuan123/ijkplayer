@@ -28,16 +28,16 @@ static void vout_free_l(SDL_Vout *vout)
 
 SDL_Vout *SDL_VoutMac_CreateForNull()
 {
-	SDL_Vout *vout = SDL_Vout_CreateInternal(sizeof(SDL_Vout_Opaque));
-	if (!vout)
+    SDL_Vout *vout = SDL_Vout_CreateInternal(sizeof(SDL_Vout_Opaque));
+    if (!vout)
         return NULL;
 
-	SDL_Vout_Opaque *opaque = vout->opaque;
-	opaque->target = NULL;
+    SDL_Vout_Opaque *opaque = vout->opaque;
+    opaque->target = NULL;
 
-	vout->create_overlay = vout_create_overlay;
+    vout->create_overlay = vout_create_overlay;
     vout->free_l = vout_free_l;
 
-	return vout;
+    return vout;
 }
 

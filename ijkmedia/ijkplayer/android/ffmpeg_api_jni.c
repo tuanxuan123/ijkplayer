@@ -23,7 +23,6 @@
 
 #include "ffmpeg_api_jni.h"
 
-#include <assert.h>
 #include <string.h>
 #include <jni.h>
 #include "../ff_ffinc.h"

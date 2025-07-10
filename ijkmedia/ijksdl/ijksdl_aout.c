@@ -25,6 +25,14 @@
 #include "ijksdl_aout.h"
 #include <stdlib.h>
 
+#ifdef TARGET_OS_IPHONE
+
+#include "ijksdl_aout_ios_audiounit.h"
+
+#elif __ANDROID__
+#include "android/ijksdl_android_jni.h"
+#endif
+
 #define SDL_AUDIO_MAX_CALLBACKS_PER_SECOND 30
 
 int SDL_AoutOpenAudio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
@@ -133,4 +141,18 @@ int SDL_AoutGetAudioPerSecondCallBacks(SDL_Aout *aout)
         }
     }
     return SDL_AUDIO_MAX_CALLBACKS_PER_SECOND;
+}
+
+
+int SDL_AudioSupportEAC3()
+{
+#ifdef TARGET_OS_MAC
+    return 1;
+#elif TARGET_OS_IPHONE
+    return SDL_IOS_AudioSupportEAC3();
+#elif __ANDROID__
+    return SDL_Android_AudioSupportEAC3();
+#endif
+
+    return 0;
 }

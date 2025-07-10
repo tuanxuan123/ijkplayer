@@ -27,6 +27,7 @@
 #define FFPLAY__FF_CMDUTILS_H
 
 #include "ff_ffinc.h"
+#include "ff_redefine.h"
 
 void            print_error(const char *filename, int err);
 AVDictionary  **setup_find_stream_info_opts(AVFormatContext *s, AVDictionary *codec_opts);

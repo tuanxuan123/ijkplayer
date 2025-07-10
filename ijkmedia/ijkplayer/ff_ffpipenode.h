@@ -40,6 +40,8 @@ struct IJKFF_Pipenode {
     void (*func_destroy) (IJKFF_Pipenode *node);
     int  (*func_run_sync)(IJKFF_Pipenode *node);
     int  (*func_flush)   (IJKFF_Pipenode *node); // optional
+    int  (*func_stop)   (IJKFF_Pipenode *node); // optional
+
 };
 
 IJKFF_Pipenode *ffpipenode_alloc(size_t opaque_size);
@@ -48,5 +50,7 @@ void ffpipenode_free_p(IJKFF_Pipenode **node);
 
 int  ffpipenode_run_sync(IJKFF_Pipenode *node);
 int  ffpipenode_flush(IJKFF_Pipenode *node);
+int  ffpipenode_stop(IJKFF_Pipenode *node);
+
 
 #endif

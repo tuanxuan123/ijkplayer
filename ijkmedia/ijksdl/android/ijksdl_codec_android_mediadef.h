@@ -63,6 +63,9 @@ typedef enum sdl_amedia_status_t {
 #define SDL_AMIME_AUDIO_VORBIS      "audio/vorbis"          //- vorbis audio
 #define SDL_AMIME_AUDIO_G711_ALAW   "audio/g711-alaw"       //- G.711 alaw audio
 #define SDL_AMIME_AUDIO_G711_MLAW   "audio/g711-mlaw"       //- G.711 ulaw audio
+#define SDL_AMIME_AUDIO_EAC3        "audio/eac3"
+#define SDL_AMIME_AUDIO_AC3         "audio/ac3"
+#define SDL_AMIME_AUDIO_EAC3_JOC    "audio/eac3-joc"
 
 #if 0
 typedef enum sdl_amedia_format_key_t {

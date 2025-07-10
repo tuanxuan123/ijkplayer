@@ -81,15 +81,15 @@ int ijk_av_dict_set(IjkAVDictionary **pm, const char *key, const char *value,
         copy_key = (void *)key;
     else
 #ifdef _MSC_VER
-		copy_key = _strdup(key);
+        copy_key = _strdup(key);
 #else
-		copy_key = strdup(key);
+        copy_key = strdup(key);
 #endif // _MSC_VER       
     if (flags & IJK_AV_DICT_DONT_STRDUP_VAL)
         copy_value = (void *)value;
     else if (copy_key)
 #ifdef _MSC_VER
-		copy_value = _strdup(value);
+        copy_value = _strdup(value);
 #else
         copy_value = strdup(value);
 #endif
@@ -126,17 +126,14 @@ int ijk_av_dict_set(IjkAVDictionary **pm, const char *key, const char *value,
             if (!newval)
                 goto err_out;
 #ifdef _WIN32
-			strncat(newval, oldval, len);
-			//strncat_s(newval, len, oldval, len);
 
-			ijk_av_freep(&oldval);
-
-			strncat(newval, copy_value, len);
-			//strncat_s(newval, len, copy_value, len);
+            strncat_s(newval, len, oldval, len);
+            ijk_av_freep(&oldval);
+            strncat_s(newval, len, copy_value, len);
 #else
-			strlcat(newval, oldval, len);
-			ijk_av_freep(&oldval);
-			strlcat(newval, copy_value, len);
+            strlcat(newval, oldval, len);
+            ijk_av_freep(&oldval);
+            strlcat(newval, copy_value, len);
 #endif // _WIN32
 
             

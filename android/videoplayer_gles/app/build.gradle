@@ -1,0 +1,64 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "com.DefaultCompany.VideoPlayerSample"
+    signingConfigs {
+        release {
+            storeFile file('/Users/xanderdeng/Desktop/videoplayer.jsk')
+            storePassword '471003117'
+            keyAlias = 'video-key'
+            keyPassword '471003117'
+        }
+    }
+    compileSdkPreview 'VanillaIceCream'
+
+    defaultConfig {
+        applicationId  "com.DefaultCompany.VideoPlayerSample"
+        minSdkVersion    21
+        versionCode 1
+        versionName "0.0.1"
+
+        // Shader compilation directives, put glsl shaders to app/src/main/shaders
+        // android studio will pick them up and compile them into APK/assets/shaders
+        // KNOWN ISSUE:  if shaders having errors, it takes long time for gradle to timeout
+        //               but it will eventually time out and complain about shader compiling
+        shaders {
+            glslcArgs.addAll(['-c', '-g'])
+        }
+        externalNativeBuild {
+            cmake {
+                // armeabi is not supported, not building for mips in samples
+                abiFilters 'armeabi-v7a', 'arm64-v8a', "x86", "x86_64"
+                arguments '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_static'//, '-DCMAKE_BUILD_TYPE=Release'
+            }
+        }
+    }
+   externalNativeBuild {
+        cmake {
+            path 'CMakeLists.txt'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            //jniLibs.srcDirs = ['libs']
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildToolsVersion '34.0.0'
+    ndkVersion '17.2.4988734'
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}

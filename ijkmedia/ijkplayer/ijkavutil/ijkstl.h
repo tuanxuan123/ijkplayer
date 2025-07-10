@@ -25,10 +25,10 @@
 
  typedef struct IjkMap
  {
- 	int 		size;
- 	int64_t 	*keys;
- 	void 		**values;
- 	int 		usedIdx;
+    int         size;
+    int64_t     *keys;
+    void        **values;
+    int         usedIdx;
 
  }IjkMap;
 

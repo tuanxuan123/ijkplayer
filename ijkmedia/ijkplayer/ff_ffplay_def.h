@@ -46,9 +46,7 @@
 #include "libavutil/avassert.h"
 #include "libavutil/time.h"
 #include "libavformat/avformat.h"
-#include "libavformat/url.h"
 // FFP_MERGE: #include "libavdevice/avdevice.h"
-#include "libswscale/swscale.h"
 #include "libavutil/opt.h"
 #include "libavcodec/avfft.h"
 #include "libswresample/swresample.h"
@@ -66,6 +64,7 @@
 #include "ff_ffmsg_queue.h"
 #include "ff_ffpipenode.h"
 #include "ijkmeta.h"
+#include "ff_redefine.h" 
 
 #ifdef _WIN32
 #include "libavutil/application.h"
@@ -142,7 +141,6 @@
 
 #define USE_ONEPASS_SUBTITLE_RENDER 1
 
-static unsigned sws_flags = SWS_BICUBIC;
 #endif
 
 #define HD_IMAGE 2  // 640*360
@@ -160,7 +158,6 @@ typedef struct GetImgInfo {
     int width;
     int height;
     AVCodecContext *frame_img_codec_ctx;
-    struct SwsContext *frame_img_convert_ctx;
 } GetImgInfo;
 
 typedef struct MyAVPacketList {
@@ -185,12 +182,15 @@ typedef struct PacketQueue {
     int is_buffer_indicator;
 } PacketQueue;
 
+
+typedef  void (*audio_data_callback)(const unsigned char* data, unsigned int size, int samples, int channels, int sample_rate, double clock, int tag);
+
 // #define VIDEO_PICTURE_QUEUE_SIZE 3
 #define VIDEO_PICTURE_QUEUE_SIZE_MIN        (3)
 #define VIDEO_PICTURE_QUEUE_SIZE_MAX        (16)
 #define VIDEO_PICTURE_QUEUE_SIZE_DEFAULT    (VIDEO_PICTURE_QUEUE_SIZE_MIN)
-#define SUBPICTURE_QUEUE_SIZE 16
-#define SAMPLE_QUEUE_SIZE 9
+#define SUBPICTURE_QUEUE_SIZE               3
+#define SAMPLE_QUEUE_SIZE                   8
 #define FRAME_QUEUE_SIZE FFMAX(SAMPLE_QUEUE_SIZE, FFMAX(VIDEO_PICTURE_QUEUE_SIZE_MAX, SUBPICTURE_QUEUE_SIZE))
 
 #define VIDEO_MAX_FPS_DEFAULT 30
@@ -202,6 +202,7 @@ typedef struct AudioParams {
     enum AVSampleFormat fmt;
     int frame_size;
     int bytes_per_sec;
+    int nb_samples;
 } AudioParams;
 
 typedef struct Clock {
@@ -243,10 +244,17 @@ typedef struct FrameQueue {
     int max_size;
     int keep_last;
     int rindex_shown;
+    int had_pushed;
     SDL_mutex *mutex;
     SDL_cond *cond;
     PacketQueue *pktq;
 } FrameQueue;
+
+typedef struct MyFrameList {
+    Frame frame;
+    struct MyFrameList *next;
+    int serial;
+} MyFrameList;
 
 enum {
     AV_SYNC_AUDIO_MASTER, /* default choice */
@@ -371,10 +379,7 @@ typedef struct VideoState {
     AVStream *video_st;
     PacketQueue videoq;
     double max_frame_duration;      // maximum duration of a frame - above this, we consider the jump a timestamp discontinuity
-    struct SwsContext *img_convert_ctx;
-#ifdef FFP_SUB
-    struct SwsContext *sub_convert_ctx;
-#endif
+
     int eof;
 
     char *filename;
@@ -415,8 +420,6 @@ typedef struct VideoState {
     int drop_aframe_count;
     int drop_vframe_count;
     int64_t accurate_seek_start_time;
-    volatile int64_t accurate_seek_vframe_pts;
-    volatile int64_t accurate_seek_aframe_pts;
     int audio_accurate_seek_req;
     int video_accurate_seek_req;
     SDL_mutex *accurate_seek_mutex;
@@ -424,6 +427,8 @@ typedef struct VideoState {
     SDL_cond  *audio_accurate_seek_cond;
     volatile int initialized_decoder;
     int seek_buffering;
+	int ignore_serial;
+    int loop_restart_req; /* 用于判断seek请求是否视频循环重新播放发起的 */
 } VideoState;
 
 /* options specified by the user */
@@ -438,7 +443,7 @@ static int screen_height = 0;
 static int audio_disable;
 static int video_disable;
 static int subtitle_disable;
-static const char* wanted_stream_spec[AVMEDIA_TYPE_NB] = {0};
+static char* wanted_stream_spec[AVMEDIA_TYPE_NB] = {0};
 static int seek_by_bytes = -1;
 static int display_disable;
 static int show_status = 1;
@@ -558,6 +563,24 @@ inline static void ffp_reset_demux_cache_control(FFDemuxCacheControl *dcc)
 /* ffplayer */
 struct IjkMediaMeta;
 struct IJKFF_Pipeline;
+
+typedef struct SubtitleFrameQueue
+{
+    MyFrameList *first_pkt, *last_pkt, *recycle_pkt;
+    int size;
+} SubtitleFrameQueue;
+
+typedef struct SubtitleState
+{
+    AVFormatContext *fmt_ctx;
+    AVCodecContext *avctx;
+    AVCodec *codec;
+    SubtitleFrameQueue sq;
+    int abort_request;
+
+    SDL_Thread *read_tid;
+    SDL_Thread _read_tid;
+} SubtitleState;
 typedef struct FFPlayer {
     const AVClass *av_class;
 
@@ -567,7 +590,6 @@ typedef struct FFPlayer {
     /* format/codec options */
     AVDictionary *format_opts;
     AVDictionary *codec_opts;
-    AVDictionary *sws_dict;
     AVDictionary *player_opts;
     AVDictionary *swr_opts;
     AVDictionary *swr_preset_opts;
@@ -589,12 +611,13 @@ typedef struct FFPlayer {
     int audio_disable;
     int video_disable;
     int subtitle_disable;
-    const char* wanted_stream_spec[AVMEDIA_TYPE_NB];
+    char* wanted_stream_spec[AVMEDIA_TYPE_NB];
     int seek_by_bytes;
     int display_disable;
     int show_status;
     int av_sync_type;
     int64_t start_time;
+    int64_t end_time;
     int64_t duration;
     int fast;
     int genpts;
@@ -607,7 +630,6 @@ typedef struct FFPlayer {
 #endif
     int loop;
     int framedrop;
-    int64_t seek_at_start;
     int subtitle;
     int infinite_buffer;
     enum ShowMode show_mode;
@@ -627,7 +649,7 @@ typedef struct FFPlayer {
 #endif
     int autorotate;
     int find_stream_info;
-    unsigned sws_flags;
+
 
     /* current context */
 #ifdef FFP_MERGE
@@ -643,6 +665,7 @@ typedef struct FFPlayer {
     SDL_Vout *vout;
     struct IJKFF_Pipeline *pipeline;
     struct IJKFF_Pipenode *node_vdec;
+    struct IJKFF_Pipenode *node_adec;
     int sar_num;
     int sar_den;
 
@@ -660,6 +683,7 @@ typedef struct FFPlayer {
     int first_video_frame_rendered;
     int first_audio_frame_rendered;
     int sync_av_start;
+    int no_message;
 
     MessageQueue msg_queue;
 
@@ -681,14 +705,21 @@ typedef struct FFPlayer {
     int mediacodec_hevc;
     int mediacodec_mpeg2;
     int mediacodec_mpeg4;
-    int mediacodec_handle_resolution_change;
-    int mediacodec_auto_rotate;
+    int mediacodec_surface;
 
     int opensles;
-    int xaudio2;
+    int aaudio;
     int soundtouch_enable;
 
+    int xaudio2;
+    int atmos_eac3;
+    int only_play_type;
+    int only_play_api;
+    int width;
+    int height;
+
     char *iformat_name;
+    char *url_md5;
 
     int no_time_adjust;
     double preset_5_1_center_mix_level;
@@ -706,7 +737,6 @@ typedef struct FFPlayer {
     float       pf_playback_rate;
     int         pf_playback_rate_changed;
     float       pf_playback_volume;
-    int         pf_playback_volume_changed;
 
     void               *inject_opaque;
     void               *ijkio_inject_opaque;
@@ -727,7 +757,33 @@ typedef struct FFPlayer {
     char *mediacodec_default_name;
     int ijkmeta_delay_init;
     int render_wait_start;
+    
     int use_mediacodec;
+    int tag;
+    int cur_media_idx;
+    int is_live_stream;
+    int release_nativewindow;
+
+    int alpha_len;
+    unsigned char *alpha_info;
+
+    int play_audio;
+    audio_data_callback audio_delegate;
+    char* decryption_key;
+    int open_max_input_size;
+    int audio_stop_mode;
+    int notify_completed_event;
+    int64_t pre_completed_time;
+    int seek_and_pause;
+    int audio_seeking;
+
+    int is_check_auth_failed;
+
+    char *soft_subtitle_path;
+    SubtitleState *subtitle_state;
+#if OHOS
+    int oh_audiosession_mode;
+#endif
 } FFPlayer;
 
 #define fftime_to_milliseconds(ts) (av_rescale(ts, 1000, AV_TIME_BASE))
@@ -741,7 +797,6 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     /* format/codec options */
     av_dict_free(&ffp->format_opts);
     av_dict_free(&ffp->codec_opts);
-    av_dict_free(&ffp->sws_dict);
     av_dict_free(&ffp->player_opts);
     av_dict_free(&ffp->swr_opts);
     av_dict_free(&ffp->swr_preset_opts);
@@ -755,7 +810,8 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->display_disable        = 0;
     ffp->show_status            = 0;
     ffp->av_sync_type           = AV_SYNC_AUDIO_MASTER;
-    ffp->start_time             = AV_NOPTS_VALUE;
+    ffp->start_time             = 0;
+    ffp->end_time               = 0;
     ffp->duration               = AV_NOPTS_VALUE;
     ffp->fast                   = 1;
     ffp->genpts                 = 0;
@@ -764,7 +820,6 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->autoexit               = 0;
     ffp->loop                   = 1;
     ffp->framedrop              = 0; // option
-    ffp->seek_at_start          = 0;
     ffp->infinite_buffer        = -1;
     ffp->show_mode              = SHOW_MODE_NONE;
     av_freep(&ffp->audio_codec_name);
@@ -779,7 +834,6 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->autorotate             = 1;
     ffp->find_stream_info       = 1;
 
-    ffp->sws_flags              = SWS_FAST_BILINEAR;
 
     /* current context */
     ffp->audio_callback_time    = 0;
@@ -795,6 +849,7 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     av_freep(&ffp->video_codec_info);
     av_freep(&ffp->audio_codec_info);
     av_freep(&ffp->subtitle_codec_info);
+    av_freep(&ffp->soft_subtitle_path);
     ffp->overlay_format         = SDL_FCC_RV32;
 
     ffp->last_error             = 0;
@@ -807,6 +862,7 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->sync_av_start          = 1;
     ffp->enable_accurate_seek   = 0;
     ffp->accurate_seek_timeout  = MAX_ACCURATE_SEEK_TIMEOUT;
+    ffp->no_message             = 0;
 
     ffp->playable_duration_ms           = 0;
 
@@ -824,11 +880,9 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->mediacodec_avc                 = 0; // option
     ffp->mediacodec_hevc                = 0; // option
     ffp->mediacodec_mpeg2               = 0; // option
-    ffp->mediacodec_handle_resolution_change = 0; // option
-    ffp->mediacodec_auto_rotate         = 0; // option
 
     ffp->opensles                       = 0; // option
-    ffp->xaudio2                        = 1; // option
+    ffp->aaudio                         = 0; // option
     ffp->soundtouch_enable              = 0; // option
 
     ffp->iformat_name                   = NULL; // option
@@ -839,6 +893,16 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->mediacodec_default_name        = NULL; // option
     ffp->ijkmeta_delay_init             = 0; // option
     ffp->render_wait_start              = 0;
+    ffp->open_max_input_size            = 1;
+    ffp->notify_completed_event         = 0;
+    ffp->pre_completed_time             = -1;
+    ffp->only_play_api                  = 0;
+    ffp->cur_media_idx                  = 0;
+    ffp->release_nativewindow           = 0;
+    ffp->width                          = 0;
+    ffp->height                         = 0;
+    ffp->seek_and_pause                 = 0;
+    ffp->audio_seeking                  = 0;
 
     ijkmeta_reset(ffp->meta);
 
@@ -850,8 +914,12 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->af_changed                     = 0;
     ffp->pf_playback_rate               = 1.0f;
     ffp->pf_playback_rate_changed       = 0;
-    ffp->pf_playback_volume             = 1.0f;
-    ffp->pf_playback_volume_changed     = 0;
+    ffp->pf_playback_volume             = 100.0f;
+
+    ffp->is_check_auth_failed = 0;
+#if OHOS
+    ffp->oh_audiosession_mode = -1; // -1 means DO_NOT_SET_AUDIO_SESSION_MODE
+ #endif
 
     av_application_closep(&ffp->app_ctx);
     ijkio_manager_destroyp(&ffp->ijkio_manager_ctx);
@@ -862,6 +930,10 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     ffp->ijkio_inject_opaque = NULL;
     ffp_reset_statistic(&ffp->stat);
     ffp_reset_demux_cache_control(&ffp->dcc);
+
+    freep((void**)&ffp->alpha_info);
+    ffp->audio_delegate = NULL;
+    freep((void**)&ffp->url_md5);
 }
 
 inline static void ffp_notify_msg1(FFPlayer *ffp, int what) {
