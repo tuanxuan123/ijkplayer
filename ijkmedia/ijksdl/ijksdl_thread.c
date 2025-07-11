@@ -23,7 +23,6 @@
  */
 
 #include <errno.h>
-#include <assert.h>
 #include <string.h>
 #include "ijksdl_inc_internal.h"
 #include "ijksdl_thread.h"
@@ -44,15 +43,29 @@ static void *SDL_RunThread(void *data)
     
 #ifndef _WIN32
 	ALOGI("SDL_RunThread: [%d] %s\n", (int)gettid(), thread->name);
-    pthread_setname_np(pthread_self(), thread->name);
+    const int kMaxThreadNameLen = 16;
+    char threadName[kMaxThreadNameLen];
+    /* 确保不会超过目标数组大小kMaxThreadNameLen，并复制字符串 */
+    strncpy(threadName, thread->name, sizeof(threadName) - 1);
+    threadName[sizeof(threadName) - 1] = '\0'; // 确保以 null 结尾
+
+    int ret = pthread_setname_np(pthread_self(), threadName);
+    if (ret != 0)
+    {
+        ALOGE("SDL_RunThread: [%d] set thread name %s failed, ret=%d\n", (int)gettid(), thread->name, ret);
+    }
+    else
+    {
+        ALOGI("SDL_RunThread: [%d] %s %d\n", (int)gettid(), thread->name, ret);
+    }
 #else
 	//ALOGI("SDL_RunThread: [%d] %s\n", (int)GetCurrentThreadId(), thread->name);
 #endif
 
     thread->retval = thread->func(thread->data);
-//#ifdef __ANDROID__
-//    SDL_JNI_DetachThreadEnv();
-//#endif
+#ifdef __ANDROID__
+    SDL_JNI_DetachThreadEnv(thread->name);
+#endif
     return NULL;
 }
 
@@ -103,7 +116,6 @@ int SDL_SetThreadPriority(SDL_ThreadPriority priority)
 
 void SDL_WaitThread(SDL_Thread *thread, int *status)
 {
-    //assert(thread);
     if (!thread)
         return;
 
@@ -115,7 +127,6 @@ void SDL_WaitThread(SDL_Thread *thread, int *status)
 
 void SDL_DetachThread(SDL_Thread *thread)
 {
-    //sassert(thread);
     if (!thread)
         return;
 

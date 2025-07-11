@@ -1,0 +1,15 @@
+# vorbis pkg-config source file
+
+prefix=${pcfiledir}
+exec_prefix=$prefix
+libdir=${pcfiledir}/x64
+includedir=${pcfiledir}/include
+
+Name: vorbis
+Description: vorbis is the primary Ogg Vorbis library
+Version: @VERSION@
+Requires.private: ogg
+Conflicts:
+Libs: -L${pcfiledir}/x64 -lvorbis -L${pcfiledir}/../libogg/x64 -logg
+Libs.private: ${pcfiledir}/../libogg/x64/ogg.lib
+Cflags: -I${pcfiledir}/include

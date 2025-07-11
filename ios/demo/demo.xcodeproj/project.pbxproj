@@ -7,7 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		ED2549B52282ACD800A8C73A /* libvideoplayer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED2549B42282ACD800A8C73A /* libvideoplayer.a */; };
+		0D9980332CDDAF3A004DF40A /* PixVideo.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9980322CDDAF3A004DF40A /* PixVideo.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0D9980352CDDAF3A004DF40A /* PixVideoCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9980342CDDAF3A004DF40A /* PixVideoCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0D9980372CDDAF60004DF40A /* PixVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9980362CDDAF60004DF40A /* PixVideo.framework */; };
+		0D9980392CDDAF60004DF40A /* PixVideoCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9980382CDDAF60004DF40A /* PixVideoCore.framework */; };
+		0D99803B2CDDB0A6004DF40A /* h5_player.h in Sources */ = {isa = PBXBuildFile; fileRef = 0D99803A2CDDB0A6004DF40A /* h5_player.h */; };
+		0D99803D2CDDB0AD004DF40A /* pandora_player.h in Sources */ = {isa = PBXBuildFile; fileRef = 0D99803C2CDDB0AD004DF40A /* pandora_player.h */; };
+		E68C87B92C787C8F000F5906 /* pixuiCurl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E68C87B82C787C8F000F5906 /* pixuiCurl.framework */; };
+		E68C87BA2C787C8F000F5906 /* pixuiCurl.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E68C87B82C787C8F000F5906 /* pixuiCurl.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		E6A1735B2C76F18100D68D5C /* pxauth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E6A1735A2C76F18100D68D5C /* pxauth.framework */; };
+		E6A1735C2C76F18100D68D5C /* pxauth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E6A1735A2C76F18100D68D5C /* pxauth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		ED07BE5E23A08AB00049B26F /* 1.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5623A08AAF0049B26F /* 1.mp4 */; };
+		ED07BE5F23A08AB00049B26F /* test_mpeg.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5723A08AAF0049B26F /* test_mpeg.mp4 */; };
+		ED07BE6023A08AB00049B26F /* Mpeg4_Video_2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5823A08AAF0049B26F /* Mpeg4_Video_2.mp4 */; };
+		ED07BE6123A08AB00049B26F /* LoginVideo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5923A08AAF0049B26F /* LoginVideo.mp4 */; };
+		ED07BE6223A08AB00049B26F /* LoginBg.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5A23A08AAF0049B26F /* LoginBg.mp4 */; };
+		ED07BE6323A08AB00049B26F /* 4.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5B23A08AAF0049B26F /* 4.mp4 */; };
+		ED07BE6423A08AB00049B26F /* 3.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5C23A08AAF0049B26F /* 3.mp4 */; };
+		ED07BE6523A08AB00049B26F /* 2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE5D23A08AAF0049B26F /* 2.mp4 */; };
+		ED07BE6723A0C4B70049B26F /* header.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED07BE6623A0C4B70049B26F /* header.mp4 */; };
+		ED6B3D7B286C495A00C374A1 /* atmos_test.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = ED6B3D7A286C495A00C374A1 /* atmos_test.mp4 */; };
 		EDE2197622801290008FAFF8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EDE2197522801290008FAFF8 /* AppDelegate.m */; };
 		EDE2197922801290008FAFF8 /* Renderer.m in Sources */ = {isa = PBXBuildFile; fileRef = EDE2197822801290008FAFF8 /* Renderer.m */; };
 		EDE2197C22801290008FAFF8 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EDE2197B22801290008FAFF8 /* GameViewController.m */; };
@@ -18,8 +37,44 @@
 		EDE2198A22801291008FAFF8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EDE2198922801291008FAFF8 /* main.m */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		ED97C4CB296D16D0004E6137 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				E6A1735C2C76F18100D68D5C /* pxauth.framework in Embed Frameworks */,
+				0D9980332CDDAF3A004DF40A /* PixVideo.framework in Embed Frameworks */,
+				0D9980352CDDAF3A004DF40A /* PixVideoCore.framework in Embed Frameworks */,
+				E68C87BA2C787C8F000F5906 /* pixuiCurl.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		ED19AA5122E990550000A481 /* h5_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = h5_player.h; path = ../../../ijkmedia/ijkplayer/h5_player.h; sourceTree = "<group>"; };
+		0D9980322CDDAF3A004DF40A /* PixVideo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PixVideo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D9980342CDDAF3A004DF40A /* PixVideoCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PixVideoCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D9980362CDDAF60004DF40A /* PixVideo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PixVideo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D9980382CDDAF60004DF40A /* PixVideoCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PixVideoCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D99803A2CDDB0A6004DF40A /* h5_player.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = h5_player.h; path = ../../ijkmedia/pixvideo/h5_player.h; sourceTree = "<group>"; };
+		0D99803C2CDDB0AD004DF40A /* pandora_player.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pandora_player.h; path = ../../ijkmedia/pixvideo/pandora_player.h; sourceTree = "<group>"; };
+		E68C87AE2C78790E000F5906 /* pixuiCurl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = pixuiCurl.framework; path = ../pixuiCurl/pixuiCurl.framework; sourceTree = "<group>"; };
+		E68C87B82C787C8F000F5906 /* pixuiCurl.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = pixuiCurl.framework; path = ../pixuiCurl/lib/pixuiCurl.framework; sourceTree = "<group>"; };
+		E6A1735A2C76F18100D68D5C /* pxauth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = pxauth.framework; path = ../pxauth/lib/pxauth.framework; sourceTree = "<group>"; };
+		ED07BE5623A08AAF0049B26F /* 1.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = 1.mp4; path = demo/Assets.xcassets/1.mp4; sourceTree = "<group>"; };
+		ED07BE5723A08AAF0049B26F /* test_mpeg.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = test_mpeg.mp4; path = demo/Assets.xcassets/test_mpeg.mp4; sourceTree = "<group>"; };
+		ED07BE5823A08AAF0049B26F /* Mpeg4_Video_2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = Mpeg4_Video_2.mp4; path = demo/Assets.xcassets/Mpeg4_Video_2.mp4; sourceTree = "<group>"; };
+		ED07BE5923A08AAF0049B26F /* LoginVideo.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = LoginVideo.mp4; path = demo/Assets.xcassets/LoginVideo.mp4; sourceTree = "<group>"; };
+		ED07BE5A23A08AAF0049B26F /* LoginBg.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = LoginBg.mp4; path = demo/Assets.xcassets/LoginBg.mp4; sourceTree = "<group>"; };
+		ED07BE5B23A08AAF0049B26F /* 4.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = 4.mp4; path = demo/Assets.xcassets/4.mp4; sourceTree = "<group>"; };
+		ED07BE5C23A08AAF0049B26F /* 3.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = 3.mp4; path = demo/Assets.xcassets/3.mp4; sourceTree = "<group>"; };
+		ED07BE5D23A08AAF0049B26F /* 2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = 2.mp4; path = demo/Assets.xcassets/2.mp4; sourceTree = "<group>"; };
+		ED07BE6623A0C4B70049B26F /* header.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = header.mp4; path = demo/Assets.xcassets/header.mp4; sourceTree = "<group>"; };
+		ED13258927BE30F8001DA111 /* libPixVideo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libPixVideo.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED1AE6ED27FD9EA3003E646A /* videoplayer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = videoplayer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED2549B42282ACD800A8C73A /* libvideoplayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libvideoplayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED2549B62282AE3800A8C73A /* libavformat.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavformat.a; path = ../build/universal/lib/libavformat.a; sourceTree = "<group>"; };
 		ED2549B72282AE3800A8C73A /* libavutil.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavutil.a; path = ../build/universal/lib/libavutil.a; sourceTree = "<group>"; };
@@ -33,6 +88,20 @@
 		ED2549C52282AEAA00A8C73A /* libavfilter.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavfilter.a; path = "../videoplayer/libs/ffmpeg-v7-64/lib/libavfilter.a"; sourceTree = "<group>"; };
 		ED2549C62282AEAA00A8C73A /* libswscale.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libswscale.a; path = "../videoplayer/libs/ffmpeg-v7-64/lib/libswscale.a"; sourceTree = "<group>"; };
 		ED2549C72282AEAA00A8C73A /* libavcodec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libavcodec.a; path = "../videoplayer/libs/ffmpeg-v7-64/lib/libavcodec.a"; sourceTree = "<group>"; };
+		ED6B3D7A286C495A00C374A1 /* atmos_test.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = atmos_test.mp4; path = demo/Assets.xcassets/atmos_test.mp4; sourceTree = "<group>"; };
+		ED730F5C27F43C9900FB33B9 /* videoplayer_framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = videoplayer_framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED81148F251DC6E300AD9331 /* GRecorderResources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = GRecorderResources.bundle; path = demo/Frameworks/GRecorderResources.bundle; sourceTree = "<group>"; };
+		ED811490251DC6E300AD9331 /* GRecorder.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GRecorder.framework; path = demo/Frameworks/GRecorder.framework; sourceTree = "<group>"; };
+		ED811491251DC6E300AD9331 /* GRecorderSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GRecorderSDK.framework; path = demo/Frameworks/GRecorderSDK.framework; sourceTree = "<group>"; };
+		ED811495251DC8C200AD9331 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		ED97C4C7296D1554004E6137 /* PixVideo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PixVideo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDD485B42519DBFC00340D60 /* libLiveVideo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libLiveVideo.a; path = ../../../Desktop/xcodeProj/Libraries/Plugins/iOS/libLiveVideo.a; sourceTree = "<group>"; };
+		EDD485B62519DBFF00340D60 /* libpandora.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpandora.a; path = ../../../Desktop/xcodeProj/Libraries/Plugins/iOS/libpandora.a; sourceTree = "<group>"; };
+		EDD485B82519DC0200340D60 /* libTCloudUpload.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libTCloudUpload.a; path = ../../../Desktop/xcodeProj/Libraries/Plugins/iOS/libTCloudUpload.a; sourceTree = "<group>"; };
+		EDD485BA2519DC0C00340D60 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
+		EDD485BC2519DCCA00340D60 /* libLiveVideo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libLiveVideo.a; path = demo/lib/libLiveVideo.a; sourceTree = "<group>"; };
+		EDD485BD2519DCCB00340D60 /* libpandora.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpandora.a; path = demo/lib/libpandora.a; sourceTree = "<group>"; };
+		EDD485BE2519DCCB00340D60 /* libTCloudUpload.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libTCloudUpload.a; path = demo/lib/libTCloudUpload.a; sourceTree = "<group>"; };
 		EDE2197122801290008FAFF8 /* demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDE2197422801290008FAFF8 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		EDE2197522801290008FAFF8 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -54,7 +123,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED2549B52282ACD800A8C73A /* libvideoplayer.a in Frameworks */,
+				0D9980372CDDAF60004DF40A /* PixVideo.framework in Frameworks */,
+				0D9980392CDDAF60004DF40A /* PixVideoCore.framework in Frameworks */,
+				E6A1735B2C76F18100D68D5C /* pxauth.framework in Frameworks */,
+				E68C87B92C787C8F000F5906 /* pixuiCurl.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,6 +136,28 @@
 		ED2549B12282853C00A8C73A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0D9980362CDDAF60004DF40A /* PixVideo.framework */,
+				0D9980382CDDAF60004DF40A /* PixVideoCore.framework */,
+				0D9980322CDDAF3A004DF40A /* PixVideo.framework */,
+				0D9980342CDDAF3A004DF40A /* PixVideoCore.framework */,
+				E68C87AE2C78790E000F5906 /* pixuiCurl.framework */,
+				E68C87B82C787C8F000F5906 /* pixuiCurl.framework */,
+				E6A1735A2C76F18100D68D5C /* pxauth.framework */,
+				ED97C4C7296D1554004E6137 /* PixVideo.framework */,
+				ED1AE6ED27FD9EA3003E646A /* videoplayer.framework */,
+				ED730F5C27F43C9900FB33B9 /* videoplayer_framework.framework */,
+				ED13258927BE30F8001DA111 /* libPixVideo.a */,
+				ED811495251DC8C200AD9331 /* libz.tbd */,
+				ED811490251DC6E300AD9331 /* GRecorder.framework */,
+				ED81148F251DC6E300AD9331 /* GRecorderResources.bundle */,
+				ED811491251DC6E300AD9331 /* GRecorderSDK.framework */,
+				EDD485BC2519DCCA00340D60 /* libLiveVideo.a */,
+				EDD485BD2519DCCB00340D60 /* libpandora.a */,
+				EDD485BE2519DCCB00340D60 /* libTCloudUpload.a */,
+				EDD485BA2519DC0C00340D60 /* libresolv.tbd */,
+				EDD485B82519DC0200340D60 /* libTCloudUpload.a */,
+				EDD485B62519DBFF00340D60 /* libpandora.a */,
+				EDD485B42519DBFC00340D60 /* libLiveVideo.a */,
 				ED2549BB2282AE3800A8C73A /* libavcodec.a */,
 				ED2549C72282AEAA00A8C73A /* libavcodec.a */,
 				ED2549B92282AE3800A8C73A /* libavfilter.a */,
@@ -84,6 +178,18 @@
 		EDE2196822801290008FAFF8 = {
 			isa = PBXGroup;
 			children = (
+				0D99803C2CDDB0AD004DF40A /* pandora_player.h */,
+				0D99803A2CDDB0A6004DF40A /* h5_player.h */,
+				ED6B3D7A286C495A00C374A1 /* atmos_test.mp4 */,
+				ED07BE6623A0C4B70049B26F /* header.mp4 */,
+				ED07BE5623A08AAF0049B26F /* 1.mp4 */,
+				ED07BE5D23A08AAF0049B26F /* 2.mp4 */,
+				ED07BE5C23A08AAF0049B26F /* 3.mp4 */,
+				ED07BE5B23A08AAF0049B26F /* 4.mp4 */,
+				ED07BE5A23A08AAF0049B26F /* LoginBg.mp4 */,
+				ED07BE5923A08AAF0049B26F /* LoginVideo.mp4 */,
+				ED07BE5823A08AAF0049B26F /* Mpeg4_Video_2.mp4 */,
+				ED07BE5723A08AAF0049B26F /* test_mpeg.mp4 */,
 				EDE2197322801290008FAFF8 /* demo */,
 				EDE2197222801290008FAFF8 /* Products */,
 				ED2549B12282853C00A8C73A /* Frameworks */,
@@ -101,7 +207,6 @@
 		EDE2197322801290008FAFF8 /* demo */ = {
 			isa = PBXGroup;
 			children = (
-				ED19AA5122E990550000A481 /* h5_player.h */,
 				EDE2197422801290008FAFF8 /* AppDelegate.h */,
 				EDE2197522801290008FAFF8 /* AppDelegate.m */,
 				EDE2197722801290008FAFF8 /* Renderer.h */,
@@ -129,6 +234,7 @@
 				EDE2196D22801290008FAFF8 /* Sources */,
 				EDE2196E22801290008FAFF8 /* Frameworks */,
 				EDE2196F22801290008FAFF8 /* Resources */,
+				ED97C4CB296D16D0004E6137 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -176,6 +282,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED6B3D7B286C495A00C374A1 /* atmos_test.mp4 in Resources */,
+				ED07BE5E23A08AB00049B26F /* 1.mp4 in Resources */,
+				ED07BE5F23A08AB00049B26F /* test_mpeg.mp4 in Resources */,
+				ED07BE6023A08AB00049B26F /* Mpeg4_Video_2.mp4 in Resources */,
+				ED07BE6123A08AB00049B26F /* LoginVideo.mp4 in Resources */,
+				ED07BE6223A08AB00049B26F /* LoginBg.mp4 in Resources */,
+				ED07BE6323A08AB00049B26F /* 4.mp4 in Resources */,
+				ED07BE6423A08AB00049B26F /* 3.mp4 in Resources */,
+				ED07BE6523A08AB00049B26F /* 2.mp4 in Resources */,
+				ED07BE6723A0C4B70049B26F /* header.mp4 in Resources */,
 				EDE2198722801291008FAFF8 /* LaunchScreen.storyboard in Resources */,
 				EDE2198422801291008FAFF8 /* Assets.xcassets in Resources */,
 				EDE2198222801290008FAFF8 /* Main.storyboard in Resources */,
@@ -189,6 +305,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D99803D2CDDB0AD004DF40A /* pandora_player.h in Sources */,
+				0D99803B2CDDB0A6004DF40A /* h5_player.h in Sources */,
 				EDE2198A22801291008FAFF8 /* main.m in Sources */,
 				EDE2197E22801290008FAFF8 /* Shaders.metal in Sources */,
 				EDE2197922801290008FAFF8 /* Renderer.m in Sources */,
@@ -333,18 +451,36 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = S477F98MZ6;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/demo/Frameworks",
+					"$(PROJECT_DIR)/../pxauth/lib",
+					"$(PROJECT_DIR)/../pixuiCurl/lib",
+				);
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = demo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_GENERATE_MAP_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = tencent.pandora.h5.iosdemo;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/demo/lib",
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.DefaultCompany.VideoPlayerSampleios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = "arm64 armv7";
+				VALIDATE_WORKSPACE = YES;
+				VALID_ARCHS = arm64;
 			};
 			name = Debug;
 		};
@@ -352,18 +488,38 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = S477F98MZ6;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/demo/Frameworks",
+					"$(PROJECT_DIR)/../pxauth/lib",
+					"$(PROJECT_DIR)/../pixuiCurl/lib",
+				);
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = demo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_GENERATE_MAP_FILE = YES;
+				LD_MAP_FILE_PATH = "$(TARGET_TEMP_DIR)/$(PRODUCT_NAME)-LinkMap-$(CURRENT_VARIANT)-$(CURRENT_ARCH).txt";
+				"LD_MAP_FILE_PATH[arch=*]" = "/Users/xanderdeng/pixui_ijkplayer/ios/demo/demo-linkmap.txt";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = tencent.pandora.h5.iosdemo;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/demo/lib",
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.DefaultCompany.VideoPlayerSampleios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = "arm64 armv7";
+				VALIDATE_WORKSPACE = YES;
+				VALID_ARCHS = arm64;
 			};
 			name = Release;
 		};

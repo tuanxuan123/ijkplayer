@@ -31,7 +31,7 @@ struct IJKFF_Pipenode_Opaque {
 
 static void func_destroy(IJKFF_Pipenode *node)
 {
-    ALOGI("====== IJKFF_Pipenode func_destroy ========");
+    ALOGI("IJKFF_Pipenode video func_destroy\n");
 }
 
 static int func_run_sync(IJKFF_Pipenode *node)
@@ -53,7 +53,10 @@ IJKFF_Pipenode *ffpipenode_create_video_decoder_from_ffplay(FFPlayer *ffp)
     node->func_destroy  = func_destroy;
     node->func_run_sync = func_run_sync;
 
+    ffp_set_option(ffp, FFP_OPT_CATEGORY_CODEC, "threads", "auto");  /* 使用软解的情况，编码线程设为auto，即根据cpu核数创建线程数 */
     ffp_set_video_codec_info(ffp, AVCODEC_MODULE_NAME, avcodec_get_name(ffp->is->viddec.avctx->codec_id));
     ffp->stat.vdec_type = FFP_PROPV_DECODER_AVCODEC;
+
+    ffp_notify_msg1(ffp, FFMPEG_CODEC_ENABLE);
     return node;
 }

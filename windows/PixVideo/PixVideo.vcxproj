@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\ijkmedia\pixvideo\authorization.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\cJSON.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\h5_player.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\pandora_player.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\player_utils.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\ijkplayer_windows.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\pipeline\ffpipeline_windows.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_directsound.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_xaudio2.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_vout_windows_null.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\windows_cache.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\ijkmedia\pixvideo\authorization.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\cJSON.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\h5_player.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\pandora_player.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\player_utils.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\pxauth\pxauth.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\pxauth\pxavalidator.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\ijkplayer_windows.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\pipeline\ffpipeline_windows.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_directsound.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_xaudio2.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_vout_windows_null.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\windows_cache.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F5F1F64B-C8DF-4F5F-A026-6D592D9AB286}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>PixVideo</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir)..\..\ijkmedia\libyuv\include;$(ProjectDir)..\pthread\include;$(ProjectDir)..\libffmpeg\include;$(ProjectDir)..\..\ijkmedia;$(ProjectDir)..\..\ijkmedia\ijkplayer;$(ProjectDir)..\..\ijkmedia\ijksdl;$(ProjectDir)..\..\ijkmedia\ijkplayer\pxauth;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)..\pxauth\x86\Debug;$(ProjectDir)..\libffmpeg\x86;$(ProjectDir)..\pthread\x86;$(ProjectDir)..\PixVideoCore\Win32\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir)..\..\ijkmedia\libyuv\include;$(ProjectDir)..\pthread\include;$(ProjectDir)..\libffmpeg\include;$(ProjectDir)..\..\ijkmedia;$(ProjectDir)..\libauth\include;$(ProjectDir)..\..\ijkmedia\ijkplayer;$(ProjectDir)..\..\ijkmedia\ijksdl;$(ProjectDir)..\..\ijkmedia\ijkplayer\pxauth;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)..\pxauth\x64\Debug;$(ProjectDir)..\pthread\x64;$(ProjectDir)..\libffmpeg\x64;$(ProjectDir)..\PixVideoCore\x64\Debug;$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir)..\..\ijkmedia\libyuv\include;$(ProjectDir)..\pthread\include;$(ProjectDir)..\libffmpeg\include;$(ProjectDir)..\..\ijkmedia;$(ProjectDir)..\..\ijkmedia\ijkplayer;$(ProjectDir)..\..\ijkmedia\ijksdl;$(ProjectDir)..\..\ijkmedia\ijkplayer\pxauth;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)..\pxauth\x86\Release;$(ProjectDir)..\libffmpeg\x86;$(ProjectDir)..\pthread\x86;$(ProjectDir)..\PixVideoCore\Win32\Release;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir)..\..\ijkmedia\libyuv\include;$(ProjectDir)..\pthread\include;$(ProjectDir)..\libffmpeg\include;$(ProjectDir)..\..\ijkmedia;$(ProjectDir)..\libauth\include;$(ProjectDir)..\..\ijkmedia\ijkplayer;$(ProjectDir)..\..\ijkmedia\ijksdl;$(ProjectDir)..\..\ijkmedia\ijkplayer\pxauth;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)..\pxauth\x64\Release;$(ProjectDir)..\pthread\x64;$(ProjectDir)..\libffmpeg\x64;$(ProjectDir)..\libauth\x64;$(ProjectDir)..\PixVideoCore\x64\Release;$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <TargetName>PixVideo</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>PixVideo.def</ModuleDefinitionFile>
+      <AdditionalDependencies>pthreadVC2.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib;avformat.lib;pxauth.lib;pxavalidator.lib;PixVideoCore.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;_CRT_SECURE_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib;pxauth.lib;pxavalidator.lib;PixVideoCore.lib</AdditionalDependencies>
+      <ModuleDefinitionFile>PixVideo.def</ModuleDefinitionFile>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>PixVideo.def</ModuleDefinitionFile>
+      <AdditionalDependencies>pthreadVC2.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib;avformat.lib;pxauth.lib;pxavalidator.lib;PixVideoCore.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;VIDEOPLAYER_EXPORTS;_CRT_SECURE_NO_DEPRECATE;WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>PixVideo.def</ModuleDefinitionFile>
+      <AdditionalDependencies>avformat.lib;dsound.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;pthreadVC2.lib;swscale.lib;avcodec.lib;avutil.lib;swresample.lib;avfilter.lib;pxauth.lib;pxavalidator.lib;PixVideoCore.lib</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <Version>2.43</Version>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets" Condition="Exists('..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\demo\packages\Microsoft.XAudio2.Redist.1.2.6\build\native\Microsoft.XAudio2.Redist.targets'))" />
+  </Target>
+</Project>

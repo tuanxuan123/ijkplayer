@@ -19,14 +19,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <assert.h>
 #include "libavformat/avformat.h"
 #include "libavformat/url.h"
 #include "libavutil/avstring.h"
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
-
 #include "libavutil/application.h"
+#include "ff_ffplay_def.h"
+#include "ijkplayer_delegate_def.h"
+
+#define IJKURLHOOK_MAX_RETRY_COUNT                 4
 
 typedef struct Context {
     AVClass        *class;
@@ -48,7 +50,13 @@ typedef struct Context {
     int64_t         test_fail_point_next;
     int64_t         app_ctx_intptr;
     AVApplicationContext *app_ctx;
+	int             tag;
+    FFPlayer        *ffp;
+    bool            reconnect_give_up;
 } Context;
+
+
+extern pixvideo_network_data_delegate g_network_data_del;
 
 static int ijkurlhook_call_inject(URLContext *h)
 {
@@ -97,7 +105,6 @@ static int ijkurlhook_reconnect(URLContext *h, AVDictionary *extra)
 
     c->test_fail_point_next += c->test_fail_point;
 
-    assert(c->inner_options);
     av_dict_copy(&inner_options, c->inner_options, 0);
     if (extra)
         av_dict_copy(&inner_options, extra, 0);
@@ -251,6 +258,17 @@ static int ijkhttphook_open(URLContext *h, const char *arg, int flags, AVDiction
     Context *c = h->priv_data;
     int ret = 0;
 
+    AVDictionaryEntry *entry = av_dict_get(*options, "tag", NULL, AV_DICT_MATCH_CASE);
+	if (entry) {
+		c->tag = atoi(entry->value);
+    }
+
+    AVDictionaryEntry *ffp_entry = av_dict_get(*options, "ffplayer", NULL, 0);
+    if (ffp_entry)
+    {
+        c->ffp = (FFPlayer *)(intptr_t)strtoll(ffp_entry->value, NULL, 10);
+    }
+    c->reconnect_give_up = false;
     c->app_ctx = (AVApplicationContext *)(intptr_t)c->app_ctx_intptr;
     c->scheme = "ijkhttphook:";
     if (av_stristart(arg, "ijkhttphook:https:", NULL))
@@ -308,21 +326,44 @@ static int ijkhttphook_read(URLContext *h, unsigned char *buf, int size)
                 goto fail;
         }
 
+        if (c->reconnect_give_up)
+        {
+            // just goto fail, no retry
+            goto fail;
+        }
+
+        if(c->ffp && c->app_io_ctrl.retry_counter == 0)
+        {
+            ffp_notify_msg1(c->ffp, FFP_MSG_BUFFER_FAIL_WEAK_NETWORK);
+        }
+
         c->app_io_ctrl.retry_counter++;
         ret = ijkurlhook_call_inject(h);
         if (ret)
-            goto fail;
-
-        if (!c->app_io_ctrl.is_handled)
             goto fail;
 
         av_log(h, AV_LOG_INFO, "%s: will reconnect(%d) at %"PRId64"\n", __func__, c->app_io_ctrl.retry_counter, c->logical_pos);
         ret = ijkhttphook_reconnect_at(h, c->logical_pos);
         av_log(h, AV_LOG_INFO, "%s: did reconnect(%d) at %"PRId64": %d\n", __func__, c->app_io_ctrl.retry_counter, c->logical_pos, ret);
         if (ret < 0)
+        {
+            if(c->app_io_ctrl.retry_counter >= IJKURLHOOK_MAX_RETRY_COUNT) {
+                c->reconnect_give_up = true;
+                if(c->ffp)
+                {
+                    ffp_notify_msg1(c->ffp, FFP_MSG_RECONNECT_FAIL_AND_EXIT);
+                }
+                goto fail;
+            }
             continue;
+        }
 
         ret = ijkurlhook_read(h, buf, size);
+    }
+
+    if (g_network_data_del)
+    {
+        g_network_data_del(buf, size, c->tag);
     }
 
 fail:

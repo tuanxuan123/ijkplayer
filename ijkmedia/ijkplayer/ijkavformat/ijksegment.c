@@ -19,145 +19,152 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <assert.h>
+
+#include <sys/types.h>
+#include <fcntl.h>
 #include "libavformat/avformat.h"
 #include "libavformat/url.h"
 #include "libavutil/avstring.h"
-#include "libavutil/log.h"
 #include "libavutil/opt.h"
-#include "../ijkavutil/ijkdict.h"
-#include "libavutil/application.h"
+#include "ijkplayer_delegate_def.h"
 
-typedef struct Context {
-    AVClass        *class;
-    URLContext     *inner;
 
-    /* options */
-    char           *http_hook;
-    int64_t         app_ctx_intptr;
-    int             cache_file_close;
-    char*           cache_file_path;
 
-} Context;
 
-void ijksegment_save() {
+extern pixvideo_file_open_delegate g_pandora_file_open_del;
+extern pixvideo_file_read_delegate g_pandora_file_read_del;
+extern pixvideo_file_seek_delegate g_pandora_file_seek_del;
+extern pixvideo_file_close_delegate g_pandora_file_close_del;
 
-}
-static int ijksegment_open(URLContext *h, const char *arg, int flags, AVDictionary **options)
-{
-    Context *c = h->priv_data;
-    AVAppIOControl io_control = {0};
-    AVApplicationContext *app_ctx = (AVApplicationContext *)(intptr_t)c->app_ctx_intptr;
+extern pixvideo_file_open_delegate g_h5_file_open_del;
+extern pixvideo_file_read_delegate g_h5_file_read_del;
+extern pixvideo_file_seek_delegate g_h5_file_seek_del;
+extern pixvideo_file_close_delegate g_h5_file_close_del;
 
-    int ret = -1;
-    int segment_index = -1;
-
-    av_strstart(arg, "ijksegment:", &arg);
-
-    if (!arg || !*arg)
-        return AVERROR_EXTERNAL;
-
-    segment_index = (int)strtol(arg, NULL, 0);
-    io_control.size = sizeof(io_control);
-    io_control.segment_index = segment_index;
-#ifdef _WIN32
-	strncpy(io_control.url, arg, sizeof(io_control.url));
-#else
-	strlcpy(io_control.url, arg, sizeof(io_control.url));
-#endif // _WIN32
-
-    if (app_ctx && io_control.segment_index < 0) {
-        ret = AVERROR_EXTERNAL;
-        goto fail;
-    }
-    ret = av_application_on_io_control(app_ctx, AVAPP_CTRL_WILL_CONCAT_SEGMENT_OPEN, &io_control);
-    if (ret || !io_control.url[0]) {
-        ret = AVERROR_EXIT;
-        goto fail;
-    }
-
-    /*
-    IjkAVDictionaryEntry* t = NULL;
-    t = ijk_av_dict_get(*options, "cache_file_path", NULL, IJK_AV_DICT_MATCH_CASE);
-    if (t) {
-        strcpy(c->cache_file_path, t->value);
-    }
-
-    if (c->cache_file_path == NULL ) {
-        c->cache_file_close = 1;
-    }
-    */
-    av_dict_set_int(options, "ijkapplication", c->app_ctx_intptr, 0);
-    av_dict_set_int(options, "ijkinject-segment-index", segment_index, 0);
-
-    ret = ffurl_open_whitelist(&c->inner,
-                               io_control.url,
-                               flags,
-                               &h->interrupt_callback,
-                               options,
-                               h->protocol_whitelist,
-                               h->protocol_blacklist,
-                               h);
-    if (ret)
-        goto fail;
-
-    return 0;
-fail:
-    return ret;
-}
-
-static int ijksegment_close(URLContext *h)
-{
-    Context *c = h->priv_data;
-
-    return ffurl_close(c->inner);
-}
-
-static int ijksegment_read(URLContext *h, unsigned char *buf, int size)
-{
-    Context *c = h->priv_data;
-    //文件存在
+typedef struct FileContext {
+    const AVClass   *class;
+    int             fd;
+    void            *handle;
+    int             is_pixui;
     
-    //文件大小不够
-    
-    //文件不存在，网络读取并写入
+} FileContext;
 
-    int ret = ffurl_read(c->inner, buf, size);
 
-    return ret;
-}
-
-static int64_t ijksegment_seek(URLContext *h, int64_t pos, int whence)
-{
-    Context *c = h->priv_data;
-
-    return ffurl_seek(c->inner, pos, whence);
-}
-
-#define OFFSET(x) offsetof(Context, x)
-#define D AV_OPT_FLAG_DECODING_PARAM
-
-static const AVOption options[] = {
-    { "ijkapplication", "AVApplicationContext", OFFSET(app_ctx_intptr), AV_OPT_TYPE_INT64, { .i64 = 0 }, INT64_MIN, INT64_MAX, .flags = D },
+static const AVOption file_options[] = {
     { NULL }
 };
 
-#undef D
-#undef OFFSET
+
 
 static const AVClass ijksegment_context_class = {
-    .class_name = "Inject",
+    .class_name = "ijksegment",
     .item_name  = av_default_item_name,
-    .option     = options,
+    .option     = file_options,
     .version    = LIBAVUTIL_VERSION_INT,
 };
 
-URLProtocol ijkimp_ff_ijksegment_protocol = {
+
+
+static int file_open(URLContext *h, const char *filename, int flags)
+{
+    FileContext *c = h->priv_data;
+
+    av_strstart(filename, "ijksegment:", &filename);
+
+    c->is_pixui = av_strstart(filename, "pixui:", &filename) ? 1 : 0;
+    c->handle = NULL;
+    if(c->is_pixui) {
+        if (g_h5_file_open_del)
+        {
+            c->handle = g_h5_file_open_del(filename, O_RDONLY);
+        }
+    } else {
+        if (g_pandora_file_open_del)
+        {
+            c->handle = g_pandora_file_open_del(filename, O_RDONLY);
+        }
+    }
+
+    if(c->handle)
+        return 0;
+
+    return -1;
+}
+
+
+static int file_read(URLContext *h, unsigned char *buf, int size)
+{
+    FileContext *c = h->priv_data;
+
+    if(c->is_pixui) {
+        if (g_h5_file_read_del)
+        {
+            return g_h5_file_read_del(c->handle, buf, size);
+        }
+    } else {
+        if (g_pandora_file_read_del)
+        {
+            return g_pandora_file_read_del(c->handle, buf, size);        
+        }
+    }
+    return -1;
+}
+
+
+static int64_t file_seek(URLContext *h, int64_t pos, int whence)
+{
+    FileContext *c = h->priv_data;
+    
+    if(c->is_pixui) {
+        if (g_h5_file_seek_del)
+        {
+            return g_h5_file_seek_del(c->handle, pos, whence);
+        }
+    } else {
+        if (g_pandora_file_seek_del)
+        {
+            return g_pandora_file_seek_del(c->handle, pos, whence);
+        }
+    }
+    return -1;
+}
+
+static int file_close(URLContext *h)
+{
+    FileContext *c = h->priv_data;
+
+    if(c->is_pixui) {
+        if (g_h5_file_close_del)
+        {
+            return g_h5_file_close_del(c->handle);
+        }
+    } else {
+        if (g_pandora_file_close_del)
+        {
+            return g_pandora_file_close_del(c->handle);
+        }
+    }
+    return -1;
+}
+
+
+
+
+
+
+
+const URLProtocol ijkimp_ff_ijksegment_protocol = {
     .name                = "ijksegment",
-    .url_open2           = ijksegment_open,
-    .url_read            = ijksegment_read,
-    .url_seek            = ijksegment_seek,
-    .url_close           = ijksegment_close,
-    .priv_data_size      = sizeof(Context),
+    .url_open            = file_open,
+    .url_read            = file_read,
+    .url_seek            = file_seek,
+    .url_close           = file_close,
+    .priv_data_size      = sizeof(FileContext),
     .priv_data_class     = &ijksegment_context_class,
 };
+
+
+
+
+
+

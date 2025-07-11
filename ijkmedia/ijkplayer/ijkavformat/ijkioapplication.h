@@ -66,6 +66,7 @@ struct IjkIOApplicationContext {
     int shared;
     int active_reconnect;
     int (*func_ijkio_on_app_event)(IjkIOApplicationContext *h, int event_type ,void *obj, int size);
+    int cache_file_close;
 };
 
 int  ijkio_application_alloc(IjkIOApplicationContext **ph, void *opaque);

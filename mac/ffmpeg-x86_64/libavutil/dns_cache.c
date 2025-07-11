@@ -78,6 +78,8 @@ static DnsCacheEntry *new_dns_cache_entry(char *hostname, struct addrinfo *cur_a
     DnsCacheEntry *new_entry = NULL;
     int64_t cur_time         = av_gettime_relative();
 
+    
+
     if (cur_time < 0) {
         goto fail;
     }
@@ -93,16 +95,43 @@ static DnsCacheEntry *new_dns_cache_entry(char *hostname, struct addrinfo *cur_a
         goto fail;
     }
 
+    /*char ipstr[256] = {0};
+    if(cur_ai->ai_family == AF_INET)
+    {
+        inet_ntop(cur_ai->ai_family, &(((struct sockaddr_in *)(cur_ai->ai_addr))->sin_addr), ipstr, 256);
+    }
+    else
+    {
+        inet_ntop(cur_ai->ai_family, &(((struct sockaddr_in6 *)(cur_ai->ai_addr))->sin6_addr), ipstr, 256);
+    }
+
+    av_log(NULL, AV_LOG_WARNING, "new_dns_cache_entry cur_ai ai_family:%d, ai_socktype:%d, ai_protocol:%d, ai_addrlen:%d, ip:%s \n", cur_ai->ai_family, cur_ai->ai_socktype, cur_ai->ai_protocol, cur_ai->ai_addrlen, ipstr);
+    */
     memcpy(new_entry->res, cur_ai, sizeof(struct addrinfo));
 
-    new_entry->res->ai_addr = (struct sockaddr *) av_mallocz(sizeof(struct sockaddr));
+    if(cur_ai->ai_family == AF_INET6)
+    {
+        new_entry->res->ai_addr = (struct sockaddr *) av_mallocz(sizeof(struct sockaddr_in6));
+    }
+    else
+    {
+        new_entry->res->ai_addr = (struct sockaddr *) av_mallocz(sizeof(struct sockaddr));
+    }
+
     if (!new_entry->res->ai_addr) {
         av_freep(&new_entry->res);
         av_freep(&new_entry);
         goto fail;
     }
+    if(cur_ai->ai_family == AF_INET6)
+    {
+        memcpy(new_entry->res->ai_addr, cur_ai->ai_addr, sizeof(struct sockaddr_in6));
+    }
+    else
+    {
+        memcpy(new_entry->res->ai_addr, cur_ai->ai_addr, sizeof(struct sockaddr));
+    }
 
-    memcpy(new_entry->res->ai_addr, cur_ai->ai_addr, sizeof(struct sockaddr));
     new_entry->res->ai_canonname = NULL;
     new_entry->res->ai_next      = NULL;
     new_entry->ref_count         = 0;

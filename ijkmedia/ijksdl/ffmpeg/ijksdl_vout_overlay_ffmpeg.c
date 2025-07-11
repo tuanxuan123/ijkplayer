@@ -25,7 +25,6 @@
 #include "ijksdl_vout_overlay_ffmpeg.h"
 
 #include <stdbool.h>
-#include <assert.h>
 #include "../ijksdl_stdinc.h"
 #include "../ijksdl_misc.h"
 #include "../ijksdl_mutex.h"
@@ -47,9 +46,6 @@ struct SDL_VoutOverlay_Opaque {
     Uint8 *pixels[AV_NUM_DATA_POINTERS];
 
     int no_neon_warned;
-
-    struct SwsContext *img_convert_ctx;
-    int sws_flags;
 };
 
 /* Always assume a linesize alignment of 1 here */
@@ -108,15 +104,13 @@ static AVFrame *opaque_obtain_managed_frame_buffer(SDL_VoutOverlay_Opaque* opaqu
 
 static void func_free_l(SDL_VoutOverlay *overlay)
 {
-    ALOGE("SDL_Overlay(ffmpeg): overlay_free_l(%p)\n", overlay);
+    //ALOGI("SDL_Overlay(ffmpeg): overlay_free_l(%p)\n", overlay);
     if (!overlay)
         return;
 
     SDL_VoutOverlay_Opaque *opaque = overlay->opaque;
     if (!opaque)
         return;
-
-    sws_freeContext(opaque->img_convert_ctx);
 
     if (opaque->managed_frame)
         av_frame_free(&opaque->managed_frame);
@@ -236,7 +230,6 @@ SDL_VoutOverlay *SDL_VoutFFmpeg_CreateOverlay(int width, int height, int frame_f
 
     SDL_VoutOverlay_Opaque *opaque = overlay->opaque;
     opaque->mutex         = SDL_CreateMutex();
-    opaque->sws_flags     = SWS_BILINEAR;
 
     overlay->opaque_class = &g_vout_overlay_ffmpeg_class;
     overlay->format       = overlay_format;

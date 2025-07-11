@@ -24,8 +24,19 @@
 
 #ifndef IJKSDL__IJKSDL_LOG_H
 #define IJKSDL__IJKSDL_LOG_H
-#define windows_log
+
 #include <stdio.h>
+
+#define LOG_BUFFER_SIZE         1024
+
+#ifdef _WIN32
+#define EXPORT_API  __declspec(dllexport)
+#else
+#define EXPORT_API  __attribute__ ((visibility ("default")))
+#endif
+
+EXPORT_API void pixvideo_set_log_level(int level);
+EXPORT_API int 	pixvideo_get_log_level(); 
 
 #ifdef __ANDROID__
 
@@ -44,17 +55,14 @@
 #define IJK_LOG_SILENT      ANDROID_LOG_SILENT
 
 #ifdef EXTRA_LOG_PRINT
-#define VLOG(level, TAG, ...)    ffp_log_extra_vprint(level, TAG, __VA_ARGS__)
-#define ALOG(level, TAG, ...)    ffp_log_extra_print(level, TAG, __VA_ARGS__)
+#define VLOG(level, TAG, ...)    if(pixvideo_get_log_level() <= (int)level) {ffp_log_extra_vprint(level, TAG, __VA_ARGS__);}
+#define ALOG(level, TAG, ...)    if(pixvideo_get_log_level() <= (int)level) {ffp_log_extra_print(level, TAG, __VA_ARGS__);}
 #else
-#define VLOG(level, TAG, ...)    ((void)__android_log_vprint(level, TAG, __VA_ARGS__))
-#define ALOG(level, TAG, ...)    ((void)__android_log_print(level, TAG, __VA_ARGS__))
+#define VLOG(level, TAG, ...)    if(pixvideo_get_log_level() <= (int)level) {(void)__android_log_vprint(level, TAG, __VA_ARGS__);}
+#define ALOG(level, TAG, ...)    if(pixvideo_get_log_level() <= (int)level) {(void)__android_log_print(level, TAG, __VA_ARGS__);}
 #endif
 
 #else
-
-#include "ijksdl_windows_log.h"
-
 
 #define IJK_LOG_UNKNOWN     0
 #define IJK_LOG_DEFAULT     1
@@ -67,15 +75,58 @@
 #define IJK_LOG_FATAL       7
 #define IJK_LOG_SILENT      8
 
-#ifdef windows_log
-#define VLOG(level, TAG, ...)    ffp_log_windows_vprint(level, TAG, __VA_ARGS__)
-#define ALOG(level, TAG, ...)    ffp_log_windows_print(level, TAG, __VA_ARGS__)
+#ifdef  _WIN32
+
+EXPORT_API void pixvideo_ffp_log_windows_print(int level, const char* tag, const char* msg);
+
+#define VLOG(level, TAG, ...)                          \
+	if (pixvideo_get_log_level() <= level)              \
+	{                                                  \
+		(void) vprintf(__VA_ARGS__);                   \
+		char log_buffer[LOG_BUFFER_SIZE] = {0};        \
+		vsnprintf(log_buffer, LOG_BUFFER_SIZE, __VA_ARGS__);      \
+		pixvideo_ffp_log_windows_print(level, TAG, log_buffer); \
+	}
+#define ALOG(level, TAG, ...)                          \
+	if (pixvideo_get_log_level() <= level)              \
+	{                                                  \
+		(void) printf(__VA_ARGS__);                    \
+		char log_buffer[LOG_BUFFER_SIZE] = {0};        \
+		snprintf(log_buffer, LOG_BUFFER_SIZE, __VA_ARGS__);              \
+		pixvideo_ffp_log_windows_print(level, TAG, log_buffer); \
+	}
+
+#elif defined(OHOS)
+#include "hilog/log.h"
+#define VLOG(level, TAG, ...)                          \
+	if (pixvideo_get_log_level() <= level)              \
+	{                                                  \
+		(void) vprintf(__VA_ARGS__);                   \
+		char log_buffer[LOG_BUFFER_SIZE] = {0};        \
+		vsnprintf(log_buffer, LOG_BUFFER_SIZE, __VA_ARGS__);      \
+		OH_LOG_Print(LOG_APP, level, LOG_DOMAIN, TAG, "%{public}s", log_buffer); \
+	}
+#define ALOG(level, TAG, ...)                          \
+	if (pixvideo_get_log_level() <= level)              \
+	{                                                  \
+		(void) printf(__VA_ARGS__);                    \
+		char log_buffer[LOG_BUFFER_SIZE] = {0};        \
+		snprintf(log_buffer, LOG_BUFFER_SIZE, __VA_ARGS__);              \
+		OH_LOG_Print(LOG_APP, level, LOG_DOMAIN, TAG, " %{public}s", log_buffer); \
+	}
 #else
-#define VLOG(level, TAG, ...)    ((void)vprintf(__VA_ARGS__))
-#define ALOG(level, TAG, ...)    ((void)printf(__VA_ARGS__))
+
+#define VLOG(level, TAG, ...)    if(pixvideo_get_log_level() <= level) {(void)vprintf(__VA_ARGS__);}
+#define ALOG(level, TAG, ...)    if(pixvideo_get_log_level() <= level) {(void)printf(__VA_ARGS__);}
+
+#endif //  _WIN32
+
+
+
+
 #endif
 
-#define IJK_LOG_TAG "IJKMEDIA"
+#define IJK_LOG_TAG "PANDORAMEDIA"
 
 #define VLOGV(...)  VLOG(IJK_LOG_VERBOSE,   IJK_LOG_TAG, __VA_ARGS__)
 #define VLOGD(...)  VLOG(IJK_LOG_DEBUG,     IJK_LOG_TAG, __VA_ARGS__)
@@ -90,5 +141,7 @@
 #define ALOGE(...)  ALOG(IJK_LOG_ERROR,     IJK_LOG_TAG, __VA_ARGS__)
 #define LOG_ALWAYS_FATAL(...)   do { ALOGE(__VA_ARGS__); exit(1); } while (0)
 
-#endif
+
+
+
 #endif

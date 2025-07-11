@@ -23,18 +23,25 @@
  */
 
 #include "ijksdl_android_jni.h"
-
+#include "ijksdl_log.h"
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/system_properties.h>
 #include "j4a/class/android/os/Build.h"
-#include "ijksdl_inc_internal_android.h"
-#include "ijksdl_codec_android_mediaformat_java.h"
-#include "ijksdl_codec_android_mediacodec_java.h"
 
-static JavaVM *g_jvm = NULL;
+static JavaVM   *g_jvm = NULL;
+
 
 static pthread_key_t g_thread_key;
 static pthread_once_t g_key_once = PTHREAD_ONCE_INIT;
+static bool is_in_atmos_blacklist = false;
+static bool atmos_checked = false;
+
+
+static const char *atmos_blacklist[] = {
+    "VOG-AL00", "PCAM00", "PCHM30", "ELE-AL00", "PCDM10", "PCKM80", "PCLM10", 
+    "SCM-W09", "LE2100", "PDCM00", "PCLM50", "PCKM00", "PCRM00", NULL
+};
 
 JavaVM *SDL_JNI_GetJvm()
 {
@@ -43,14 +50,20 @@ JavaVM *SDL_JNI_GetJvm()
 
 void SDL_JNI_SetJvm(JavaVM *vm)
 {
+    if(g_jvm)
+        return;
+    
     JNIEnv* env = NULL;
 
     g_jvm = vm;
-    if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+    if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_6) != JNI_OK) {
         return;
     }
 
     J4A_LoadAll__catchAll(env);
+
+    J4A_loadClass__J4AC_android_os_Build(env);
+    J4A_loadClass__J4AC_AudioTrack(env);
 }
 
 static void SDL_JNI_ThreadDestroyed(void* value)
@@ -72,7 +85,7 @@ jint SDL_JNI_SetupThreadEnv(JNIEnv **p_env)
 {
     JavaVM *jvm = g_jvm;
     if (!jvm) {
-        ALOGE("SDL_JNI_GetJvm: AttachCurrentThread: NULL jvm");
+        ALOGI("SDL_JNI_GetJvm: AttachCurrentThread: NULL jvm");
         return -1;
     }
 
@@ -93,26 +106,29 @@ jint SDL_JNI_SetupThreadEnv(JNIEnv **p_env)
     return -1;
 }
 
-void SDL_JNI_DetachThreadEnv()
+void SDL_JNI_DetachThreadEnv(const char* thread_name)
 {
     JavaVM *jvm = g_jvm;
     
     if(!jvm)
         return;
 
-    ALOGI("%s: [%d]\n", __func__, (int)gettid());
+    ALOGI("%s: [%d], thread name: %s \n", __func__, (int)gettid(), thread_name ? thread_name : "NULL");
 
     pthread_once(&g_key_once, make_thread_key);
 
     JNIEnv *env = pthread_getspecific(g_thread_key);
-    if (!env)
+    if (!env) {
+        ALOGI("SDL_JNI_DetachThreadEnv not env: [%d]", (int)gettid());
         return;
+    }
+        
     pthread_setspecific(g_thread_key, NULL);
 
-    if ((*jvm)->DetachCurrentThread(jvm) == JNI_OK)
-        return;
-
-    return;
+    if ((*jvm)->DetachCurrentThread(jvm) != JNI_OK) {
+        ALOGE("DetachCurrentThread fail, id:%d", (int)gettid());
+    }
+        
 }
 
 int SDL_JNI_ThrowException(JNIEnv* env, const char* className, const char* msg)
@@ -192,23 +208,104 @@ int SDL_Android_GetApiLevel()
     static int SDK_INT = 0;
     if (SDK_INT > 0)
         return SDK_INT;
-#if 0
-    JNIEnv *env = NULL;
-    if (JNI_OK != SDL_JNI_SetupThreadEnv(&env)) {
-        ALOGE("SDL_Android_GetApiLevel: SetupThreadEnv failed");
-        return 0;
-    }
 
-    SDK_INT = J4AC_android_os_Build__VERSION__SDK_INT__get__catchAll(env);
-    ALOGI("API-Level: %d\n", SDK_INT);
-    return SDK_INT;
-#endif
 
     char value[32] = {0};
     __system_property_get("ro.build.version.sdk", value);
     SDK_INT = atoi(value);
     return SDK_INT;
 
+}
+
+
+
+void SDL_JNI_AttachCurrentThread()
+{
+    if(!g_jvm)
+        return;
+
+    JNIEnv *env = NULL;
+    if(JNI_OK != (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL)) {
+        ALOGE("SDL_JNI_AttachCurrentThread failed!");
+    }
+
+}
+
+void SDL_JNI_DetachCurrentThread()
+{
+    if(!g_jvm)
+        return;
+
+    if(JNI_OK != (*g_jvm)->DetachCurrentThread(g_jvm)) {
+        ALOGE("SDL_JNI_DetachCurrentThread failed!");
+    }
+}
+
+
+int SDL_Android_AudioSupportEAC3()
+{
+    if (SDL_Android_GetApiLevel() < IJK_API_28)
+        return 0;
+
+    if(atmos_checked) 
+        return is_in_atmos_blacklist ? 0 : J4AC_MediaFormat__SupportEAC3();
+    
+
+    char device_model[128] = {0};
+
+    __system_property_get("ro.product.model", device_model);
+
+    int i = 0;
+
+    while(atmos_blacklist[i]) {
+        if(strcasecmp(atmos_blacklist[i], device_model) == 0) {
+            is_in_atmos_blacklist = true;
+            break;
+        }
+        ++i;
+    }
+
+    atmos_checked = true;
+
+    return is_in_atmos_blacklist ? 0 : J4AC_MediaFormat__SupportEAC3();
+
+}
+
+
+jint JNI_OnLoad(JavaVM *vm, void *reserved)
+{
+    bool java_thread = true;
+    JNIEnv* env = NULL;
+    jint retval = JNI_ERR;
+    g_jvm = vm;
+
+    if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_6) == JNI_OK) {
+        retval = JNI_VERSION_1_6;
+        ALOGI("PixVideo JNI_OnLoad JNI_VERSION_1_6!");
+    } else if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) == JNI_OK) {
+        retval = JNI_VERSION_1_4;
+        ALOGI("PixVideo JNI_OnLoad JNI_VERSION_1_4!");
+    } else if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_2) == JNI_OK) {
+        retval = JNI_VERSION_1_2;
+        ALOGI("PixVideo JNI_OnLoad JNI_VERSION_1_2!");
+    } else {
+        ALOGI("PixVideo JNI_OnLoad GetEnv failed!");
+        java_thread = false;
+    }
+
+    if (java_thread) {
+        J4A_loadClass__J4AC_android_os_Build(env);
+        J4A_loadClass__J4AC_AudioTrack(env);
+    } else if ((*vm)->AttachCurrentThread(vm, &env, NULL) == JNI_OK) {
+        J4A_loadClass__J4AC_android_os_Build(env);
+        J4A_loadClass__J4AC_AudioTrack(env);
+
+        (*vm)->DetachCurrentThread(vm);
+    } else {
+        ALOGE("PixVideo JNI_OnLoad failed!");
+    }
+
+    return retval;
 }
 
 

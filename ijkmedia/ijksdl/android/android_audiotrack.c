@@ -23,8 +23,6 @@
  */
 
 #include "android_audiotrack.h"
-
-#include <assert.h>
 #include "j4au/class/android/media/AudioTrack.util.h"
 #include "ijksdl_android_jni.h"
 #include "../ijksdl_inc_internal.h"
@@ -112,7 +110,10 @@ typedef struct SDL_Android_AudioTrack {
 
 static void SDL_Android_AudioTrack_get_default_spec(SDL_Android_AudioTrack_Spec *spec)
 {
-    assert(spec);
+    if (!spec) {
+        return;
+    }
+
     spec->stream_type = STREAM_MUSIC;
     spec->sample_rate_in_hz = 0;
     spec->channel_config = CHANNEL_OUT_STEREO;
@@ -126,7 +127,7 @@ int audiotrack_get_native_output_sample_rate(JNIEnv *env)
 {
     if (!env) {
         if (JNI_OK != SDL_JNI_SetupThreadEnv(&env)) {
-            ALOGE("%s: SetupThreadEnv failed", __func__);
+            ALOGI("%s: SetupThreadEnv failed", __func__);
             return -1;
         }
     }
@@ -145,7 +146,9 @@ void SDL_Android_AudioTrack_set_volume(JNIEnv *env, SDL_Android_AudioTrack *atra
 
 SDL_Android_AudioTrack *SDL_Android_AudioTrack_new_from_spec(JNIEnv *env, SDL_Android_AudioTrack_Spec *spec)
 {
-    assert(spec);
+    if (!spec) {
+        return NULL;
+    }
 
     switch (spec->channel_config) {
     case CHANNEL_OUT_MONO:

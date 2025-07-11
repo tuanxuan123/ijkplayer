@@ -29,15 +29,14 @@
 
 
 #ifdef _WIN32
-#include "../ijkavutil/ijkutils.h"
-#include "../ijkavutil/ijktree.h"
-#include "../ijkavutil/ijkstl.h"
+#include <io.h>
 #else
-#include "ijkplayer/ijkavutil/ijkutils.h"
-#include "ijkplayer/ijkavutil/ijktree.h"
-#include "ijkplayer/ijkavutil/ijkstl.h"
 #include <unistd.h>
-#endif // _WIN32
+#endif// _WIN32
+
+#include "ijkavutil/ijkutils.h"
+#include "ijkavutil/ijktree.h"
+#include "ijkavutil/ijkstl.h"
 
 #define CONFIG_MAX_LINE 1024
 
@@ -58,6 +57,7 @@ static int ijkio_manager_alloc(IjkIOManagerContext **ph, void *opaque)
     h->ijkio_app_ctx->threadpool_ctx = ijk_threadpool_create(5, 5, 0);
     h->ijkio_app_ctx->cache_info_map = ijk_map_create();
     h->ijkio_app_ctx->fd             = -1;
+    h->ijkio_app_ctx->cache_file_close = 0;
     *ph = h;
     return 0;
 }
@@ -143,8 +143,7 @@ void ijkio_manager_destroy(IjkIOManagerContext *h)
     FILE *map_tree_info_fp = NULL;
 
     if (h->ijkio_app_ctx) {
-        if (h->auto_save_map) {
-            mkdirs(h->cache_map_path);
+        if (h->auto_save_map && !h->ijkio_app_ctx->cache_file_close) {
             map_tree_info_fp = fopen(h->cache_map_path, "w");
             if (map_tree_info_fp) {
                 ijk_map_traversal_handle(h->ijkio_app_ctx->cache_info_map, map_tree_info_fp, ijkio_manager_save_tree_to_file);
@@ -159,11 +158,13 @@ void ijkio_manager_destroy(IjkIOManagerContext *h)
         if (h->ijkio_app_ctx->threadpool_ctx) {
             ijk_threadpool_destroy(h->ijkio_app_ctx->threadpool_ctx, IJK_IMMEDIATE_SHUTDOWN);
         }
+
         if (0 != strlen(h->ijkio_app_ctx->cache_file_path)) {
             if (h->ijkio_app_ctx->fd >= 0) {
                 close(h->ijkio_app_ctx->fd);
             }
         }
+
         pthread_mutex_destroy(&h->ijkio_app_ctx->mutex);
 
         ijkio_application_closep(&h->ijkio_app_ctx);
@@ -359,9 +360,9 @@ void ijkio_manager_will_share_cache_map(IjkIOManagerContext *h) {
     h->ijkio_app_ctx->shared = 1;
     ijk_map_traversal_handle(h->ijkio_app_ctx->cache_info_map, map_tree_info_fp, ijkio_manager_save_tree_to_file);
     fclose(map_tree_info_fp);
-#ifndef _WIN32
+#ifndef _WIN32    
     if (h->ijkio_app_ctx->fd >= 0) {
-		fsync(h->ijkio_app_ctx->fd);
+        fsync(h->ijkio_app_ctx->fd);
     }
 #endif // !_WIN32
     pthread_mutex_unlock(&h->ijkio_app_ctx->mutex);
@@ -433,9 +434,11 @@ int ijkio_manager_io_open(IjkIOManagerContext *h, const char *url, int flags, Ij
             ijk_map_put(h->ijk_ctx_map, (int64_t)(intptr_t)h->cur_ffmpeg_ctx, inner);
         }
         ret = inner->prot->url_open2(inner, url, flags, options);
-        if (ret != 0)
-            goto fail;
-
+		if (ret != 0) {
+			av_log(NULL, AV_LOG_WARNING, "ijkio_cache_open fail, ret:%d\n", ret);
+			goto fail;
+        }
+            
         return ret;
     }
 
@@ -499,7 +502,6 @@ int64_t ijkio_manager_io_seek(IjkIOManagerContext *h, int64_t offset, int whence
 }
 
 int ijkio_manager_io_close(IjkIOManagerContext *h) {
-    
     int ret = -1;
     if (!h)
         return ret;
@@ -513,7 +515,8 @@ int ijkio_manager_io_close(IjkIOManagerContext *h) {
         ijk_av_freep(&inner->priv_data);
         ijk_av_freep(&inner);
     }
-    //add 
+
     ijkio_manager_destroyp(&h);
+
     return ret;
 }

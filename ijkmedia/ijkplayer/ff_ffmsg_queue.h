@@ -53,9 +53,9 @@ typedef struct MessageQueue {
 
 inline static void msg_free_res(AVMessage *msg)
 {
-    if (!msg || !msg->obj)
+    if (!msg || !msg->obj || !msg->free_l)
         return;
-    assert(msg->free_l);
+
     msg->free_l(msg->obj);
     msg->obj = NULL;
 }
@@ -157,12 +157,40 @@ inline static void msg_queue_put_simple4(MessageQueue *q, int what, int arg1, in
     msg.arg1 = arg1;
     msg.arg2 = arg2;
     msg.obj = av_malloc(obj_len);
+    memset(msg.obj, 0, obj_len);
     memcpy(msg.obj, obj, obj_len);
     msg.free_l = msg_obj_free_l;
     msg_queue_put(q, &msg);
 }
 
-inline static void msg_queue_init(MessageQueue *q)
+inline static void msg_queue_put_simple5(MessageQueue *q, int what, int arg1, int arg2, void *weak_obj)
+{
+    AVMessage msg;
+    msg_init_msg(&msg);
+    msg.what = what;
+    msg.arg1 = arg1;
+    msg.arg2 = arg2;
+    msg.obj = weak_obj;
+    msg.free_l = NULL;
+    msg_queue_put(q, &msg);
+}
+
+
+inline static void msg_queue_put_string4(MessageQueue* q, int what, int arg1, int arg2, void* obj, int obj_len)
+{
+    AVMessage msg;
+    msg_init_msg(&msg);
+    msg.what = what;
+    msg.arg1 = arg1;
+    msg.arg2 = arg2;
+    msg.obj = av_malloc(obj_len + 1);
+    memset(msg.obj, 0, obj_len + 1);
+    memcpy(msg.obj, obj, obj_len);
+    msg.free_l = msg_obj_free_l;
+    msg_queue_put(q, &msg);
+}
+
+inline static void msg_queue_init(MessageQueue* q)
 {
     memset(q, 0, sizeof(MessageQueue));
     q->mutex = SDL_CreateMutex();
@@ -219,7 +247,30 @@ inline static void msg_queue_abort(MessageQueue *q)
     SDL_UnlockMutex(q->mutex);
 }
 
-inline static void msg_queue_start(MessageQueue *q)
+
+inline static void msg_queue_clear(MessageQueue* q)
+{
+    msg_queue_flush(q);
+
+    SDL_LockMutex(q->mutex);
+
+    q->abort_request = 1;
+
+    while (q->recycle_msg)
+    {
+        AVMessage* msg = q->recycle_msg;
+        if (msg)
+            q->recycle_msg = msg->next;
+        msg_free_res(msg);
+        av_freep(&msg);
+    }
+
+    SDL_CondSignal(q->cond);
+
+    SDL_UnlockMutex(q->mutex);
+}
+
+inline static void msg_queue_start(MessageQueue* q)
 {
     SDL_LockMutex(q->mutex);
     q->abort_request = 0;

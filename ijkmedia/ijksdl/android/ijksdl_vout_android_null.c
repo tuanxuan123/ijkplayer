@@ -2,6 +2,7 @@
 #include "ijksdl_vout_android_null.h"
 #include "../ijksdl_vout_internal.h"
 #include "../ffmpeg/ijksdl_vout_overlay_ffmpeg.h"
+#include "ijksdl_vout_overlay_android_mediacodec.h"
 
 
 struct SDL_Vout_Opaque {
@@ -11,8 +12,13 @@ struct SDL_Vout_Opaque {
 
 static SDL_VoutOverlay *vout_create_overlay_l(int width, int height, int frame_format, SDL_Vout *vout)
 {
-
-    return SDL_VoutFFmpeg_CreateOverlay(width, height, frame_format, vout);
+    if(frame_format == IJK_AV_PIX_FMT__ANDROID_MEDIACODEC) {
+        return SDL_VoutAMediaCodec_CreateOverlay(width, height, vout); 
+    }
+    else {
+        return SDL_VoutFFmpeg_CreateOverlay(width, height, frame_format, vout);
+    }
+    
 }
 
 static SDL_VoutOverlay *vout_create_overlay(int width, int height, int frame_format, SDL_Vout *vout)
@@ -45,6 +51,7 @@ SDL_Vout *SDL_VoutAndroid_CreateForNull()
 
 	vout->create_overlay = vout_create_overlay;
     vout->free_l = vout_free_l;
+    vout->display_overlay = NULL;
 
 	return vout;
 }

@@ -21,16 +21,48 @@
 
 #include "MediaFormat.h"
 
+#define FORMAT_MIME_AUDIO_EAC3_JOC    "audio/eac3-joc"
+#define ALL_CODECS_LIST               1
+
+typedef struct J4AC_android_MediaCodecList {
+    jclass id;
+
+    jmethodID constructor_MediaCodecList;
+    jmethodID method_findDecoderForFormat;
+
+} J4AC_android_MediaCodecList;
+static J4AC_android_MediaCodecList class_J4AC_android_MediaCodecList;
+
 typedef struct J4AC_android_media_MediaFormat {
     jclass id;
 
     jmethodID constructor_MediaFormat;
     jmethodID method_createVideoFormat;
+    jmethodID method_createAudioFormat;
     jmethodID method_getInteger;
     jmethodID method_setInteger;
     jmethodID method_setByteBuffer;
 } J4AC_android_media_MediaFormat;
 static J4AC_android_media_MediaFormat class_J4AC_android_media_MediaFormat;
+
+static int s_device_sopport_eac3 = 0;
+
+
+static void check_sopport_eac3(JNIEnv *env)
+{
+    jstring mime = (*env)->NewStringUTF(env, FORMAT_MIME_AUDIO_EAC3_JOC);
+    jobject codec_list = (*env)->NewObject(env, class_J4AC_android_MediaCodecList.id, class_J4AC_android_MediaCodecList.constructor_MediaCodecList, ALL_CODECS_LIST);
+    jobject eac3_format = (*env)->CallStaticObjectMethod(env, class_J4AC_android_media_MediaFormat.id, class_J4AC_android_media_MediaFormat.method_createAudioFormat, mime, 48000, 6);
+
+    jstring decoder = (*env)->CallObjectMethod(env, codec_list, class_J4AC_android_MediaCodecList.method_findDecoderForFormat, eac3_format);
+
+    s_device_sopport_eac3 = decoder != NULL ? 1 : 0;
+
+    J4A_DeleteLocalRef__p(env, &mime);
+    J4A_DeleteLocalRef__p(env, &codec_list);
+    J4A_DeleteLocalRef__p(env, &eac3_format);
+    J4A_DeleteLocalRef__p(env, &decoder);
+}
 
 jobject J4AC_android_media_MediaFormat__MediaFormat(JNIEnv *env)
 {
@@ -308,15 +340,38 @@ int J4A_loadClass__J4AC_android_media_MediaFormat(JNIEnv *env)
 
     api_level = J4A_GetSystemAndroidApiLevel(env);
 
-    if (api_level < 16) {
+    if (api_level < 21) {
         J4A_ALOGW("J4ALoader: Ignore: '%s' need API %d\n", "android.media.MediaFormat", api_level);
         goto ignore;
     }
+
+    sign = "android/media/MediaCodecList";
+
+    class_J4AC_android_MediaCodecList.id = J4A_FindClass__asGlobalRef__catchAll(env, sign);
+
+    if(class_J4AC_android_MediaCodecList.id == NULL)
+        goto fail;
+
+    class_id = class_J4AC_android_MediaCodecList.id;
+    name     = "<init>";
+    sign     = "(I)V";
+    class_J4AC_android_MediaCodecList.constructor_MediaCodecList = J4A_GetMethodID__catchAll(env, class_id, name, sign);
+    if(class_J4AC_android_MediaCodecList.constructor_MediaCodecList == NULL)
+        goto fail;
+
+    name     = "findDecoderForFormat";
+    sign     = "(Landroid/media/MediaFormat;)Ljava/lang/String;";
+    class_J4AC_android_MediaCodecList.method_findDecoderForFormat = J4A_GetMethodID__catchAll(env, class_id, name, sign);
+    if(class_J4AC_android_MediaCodecList.method_findDecoderForFormat == NULL)
+        goto fail;
+
 
     sign = "android/media/MediaFormat";
     class_J4AC_android_media_MediaFormat.id = J4A_FindClass__asGlobalRef__catchAll(env, sign);
     if (class_J4AC_android_media_MediaFormat.id == NULL)
         goto fail;
+
+    
 
     class_id = class_J4AC_android_media_MediaFormat.id;
     name     = "<init>";
@@ -330,6 +385,13 @@ int J4A_loadClass__J4AC_android_media_MediaFormat(JNIEnv *env)
     sign     = "(Ljava/lang/String;II)Landroid/media/MediaFormat;";
     class_J4AC_android_media_MediaFormat.method_createVideoFormat = J4A_GetStaticMethodID__catchAll(env, class_id, name, sign);
     if (class_J4AC_android_media_MediaFormat.method_createVideoFormat == NULL)
+        goto fail;
+
+    class_id = class_J4AC_android_media_MediaFormat.id;
+    name     = "createAudioFormat";
+    sign     = "(Ljava/lang/String;II)Landroid/media/MediaFormat;";
+    class_J4AC_android_media_MediaFormat.method_createAudioFormat = J4A_GetStaticMethodID__catchAll(env, class_id, name, sign);
+    if (class_J4AC_android_media_MediaFormat.method_createAudioFormat == NULL)
         goto fail;
 
     class_id = class_J4AC_android_media_MediaFormat.id;
@@ -353,9 +415,20 @@ int J4A_loadClass__J4AC_android_media_MediaFormat(JNIEnv *env)
     if (class_J4AC_android_media_MediaFormat.method_setByteBuffer == NULL)
         goto fail;
 
+    if(api_level >= 28) {
+        check_sopport_eac3(env);
+    }
+    
     J4A_ALOGD("J4ALoader: OK: '%s' loaded\n", "android.media.MediaFormat");
 ignore:
     ret = 0;
 fail:
     return ret;
+}
+
+
+
+int J4AC_android_MediaFormat__SupportEAC3()
+{
+    return s_device_sopport_eac3;
 }

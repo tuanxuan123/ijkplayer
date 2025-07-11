@@ -19,9 +19,7 @@
 #----------
 # modify for your build tool
 
-FF_ALL_ARCHS_IOS6_SDK="armv7 armv7s i386"
-FF_ALL_ARCHS_IOS7_SDK="armv7 armv7s arm64 i386 x86_64"
-FF_ALL_ARCHS_IOS8_SDK="armv7 arm64 i386 x86_64"
+FF_ALL_ARCHS_IOS8_SDK="armv7 arm64 x86_64"
 
 FF_ALL_ARCHS=$FF_ALL_ARCHS_IOS8_SDK
 
@@ -41,7 +39,7 @@ echo_archs() {
     echo "FF_ALL_ARCHS = $FF_ALL_ARCHS"
 }
 
-FF_LIBS="libavcodec libavfilter libavformat libavutil libswscale libswresample"
+FF_LIBS="libavcodec libavformat libavutil libswresample"
 do_lipo_ffmpeg () {
     LIB_FILE=$1
     LIPO_FLAGS=
@@ -114,6 +112,24 @@ do_lipo_all () {
     do
         do_lipo_ssl "$SSL_LIB.a";
     done
+
+    #at last, lipo merge all .a to libPixFFmpeg.a
+    for FF_LIB in $FF_LIBS
+    do
+        cp -f "$UNI_BUILD_ROOT/build/universal/lib/$FF_LIB.a" "$UNI_BUILD_ROOT/libffmpeg-all/lib/"
+    done
+    cp -f "$UNI_BUILD_ROOT/libvorbis/lib/libvorbis.a" "$UNI_BUILD_ROOT/libffmpeg-all/lib/"
+    cp -f "$UNI_BUILD_ROOT/openssl/lib/libcrypto.a" "$UNI_BUILD_ROOT/libffmpeg-all/lib/"
+    cp -f "$UNI_BUILD_ROOT/openssl/lib/libssl.a" "$UNI_BUILD_ROOT/libffmpeg-all/lib/"
+    cd PixFFmpeg
+    xcodebuild clean -project PixFFmpeg.xcodeproj -target PixFFmpeg
+    xcodebuild -project PixFFmpeg.xcodeproj -target PixFFmpeg
+    cp build/Release-iphoneos/libPixFFmpeg.a ../libffmpeg-all/lib/
+    cd -
+    cd ./libffmpeg-all/lib/
+    ../../MachoRenamer/MachoRenamer libPixFFmpeg.a -p pvideo_
+    cp PixFFmpeg-prefix.pch ../../PixVideo_framework/PixVideo_framework/PixFFmpeg-prefix.pch
+    cd -
 }
 
 #----------

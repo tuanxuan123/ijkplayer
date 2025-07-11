@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\ijkmedia\pixvideo\authorization.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\cJSON.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\h5_player.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\pandora_player.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\player_utils.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\ijkplayer_windows.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\pipeline\ffpipeline_windows.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_directsound.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_xaudio2.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_vout_windows_null.c" />
+    <ClCompile Include="..\..\ijkmedia\pixvideo\windows\windows_cache.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\ijkmedia\pixvideo\authorization.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\cJSON.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\h5_player.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\pandora_player.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\player_utils.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\pxauth\pxauth.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\pxauth\pxavalidator.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\ijkplayer_windows.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\pipeline\ffpipeline_windows.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_directsound.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_aout_windows_xaudio2.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\sdl\ijksdl_vout_windows_null.h" />
+    <ClInclude Include="..\..\ijkmedia\pixvideo\windows\windows_cache.h" />
+  </ItemGroup>
+</Project>

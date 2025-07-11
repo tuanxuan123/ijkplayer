@@ -25,13 +25,13 @@
 #include "ijksdl_aout_android_audiotrack.h"
 
 #include <stdbool.h>
-#include <assert.h>
 #include <jni.h>
 #include "../ijksdl_inc_internal.h"
 #include "../ijksdl_thread.h"
 #include "../ijksdl_aout_internal.h"
 #include "ijksdl_android_jni.h"
 #include "android_audiotrack.h"
+#include "ff_ffplay.h"
 
 #ifdef SDLTRACE
 #undef SDLTRACE
@@ -77,9 +77,12 @@ static int aout_thread_n(JNIEnv *env, SDL_Aout *aout)
     void *userdata = opaque->spec.userdata;
     uint8_t *buffer = opaque->buffer;
     int copy_size = 256;
+    FFPlayer *ffp = (FFPlayer*)userdata;
+    VideoState *is = ffp->is;
 
-    assert(atrack);
-    assert(buffer);
+    if (!atrack || !buffer) {
+        return -1;
+    }
 
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_HIGH);
 
@@ -116,6 +119,18 @@ static int aout_thread_n(JNIEnv *env, SDL_Aout *aout)
         SDL_UnlockMutex(opaque->wakeup_mutex);
 
         audio_cblk(userdata, buffer, copy_size);
+
+		if (ffp->audio_delegate && is->audio_buf)
+		{
+			int nb_samples = copy_size / 2 / is->audio_src.channels;
+			ffp->audio_delegate(buffer, copy_size, nb_samples, is->audio_src.channels, is->audio_src.freq, is->audio_clock, ffp->tag);
+		}
+
+		if (!ffp->play_audio || ffp->only_play_api) 
+		{
+        	memset(buffer, 0, copy_size);
+    	}
+
         if (opaque->need_flush) {
             SDL_Android_AudioTrack_flush(env, atrack);
             opaque->need_flush = false;
@@ -154,7 +169,6 @@ static int aout_thread(void *arg)
 
 static int aout_open_audio_n(JNIEnv *env, SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
 {
-    assert(desired);
     SDL_Aout_Opaque *opaque = aout->opaque;
 
     opaque->spec = *desired;
@@ -190,7 +204,7 @@ static int aout_open_audio_n(JNIEnv *env, SDL_Aout *aout, const SDL_AudioSpec *d
 
     opaque->pause_on = 1;
     opaque->abort_request = 0;
-    opaque->audio_tid = SDL_CreateThreadEx(&opaque->_audio_tid, aout_thread, aout, "ff_aout_android");
+    opaque->audio_tid = SDL_CreateThreadEx(&opaque->_audio_tid, aout_thread, aout, "ff_audiotrack_thread");
     if (!opaque->audio_tid) {
         ALOGE("aout_open_audio_n: failed to create audio thread");
         SDL_Android_AudioTrack_free(env, opaque->atrack);
@@ -240,8 +254,8 @@ static void aout_set_volume(SDL_Aout *aout, float left_volume, float right_volum
     SDL_Aout_Opaque *opaque = aout->opaque;
     SDL_LockMutex(opaque->wakeup_mutex);
     SDLTRACE("aout_flush_audio()");
-    opaque->left_volume = left_volume;
-    opaque->right_volume = right_volume;
+    opaque->left_volume = left_volume/100;
+    opaque->right_volume = right_volume/100;
     opaque->need_set_volume = 1;
     SDL_CondSignal(opaque->wakeup_cond);
     SDL_UnlockMutex(opaque->wakeup_mutex);
@@ -304,9 +318,13 @@ static void func_set_playback_rate(SDL_Aout *aout, float speed)
 
 SDL_Aout *SDL_AoutAndroid_CreateForAudioTrack()
 {
+    ALOGI("using AudioTrack");
+
     SDL_Aout *aout = SDL_Aout_CreateInternal(sizeof(SDL_Aout_Opaque));
     if (!aout)
         return NULL;
+
+    
 
     SDL_Aout_Opaque *opaque = aout->opaque;
     opaque->wakeup_cond  = SDL_CreateCond();
@@ -328,7 +346,7 @@ SDL_Aout *SDL_AoutAndroid_CreateForAudioTrack()
 
 bool SDL_AoutAndroid_IsObjectOfAudioTrack(SDL_Aout *aout)
 {
-    if (aout)
+    if (!aout)
         return false;
 
     return aout->opaque_class == &g_audiotrack_class;

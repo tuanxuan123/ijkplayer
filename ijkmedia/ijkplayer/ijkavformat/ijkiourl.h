@@ -26,12 +26,7 @@
 
 #include <stdint.h>
 #include "ijkioapplication.h"
-
-#ifdef _WIN32
-#include "../ijkavutil/ijkdict.h"
-#else
-#include "ijkplayer/ijkavutil/ijkdict.h"
-#endif // _WIN32
+#include "ijkavutil/ijkdict.h"
 
 
 struct IjkURLProtocol;

@@ -76,6 +76,13 @@ void SDL_Delay(Uint32 ms)
 }
 
 
+int64_t SDL_GetCurrentTime()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    
+    return (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
 
 
 

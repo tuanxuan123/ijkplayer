@@ -52,12 +52,15 @@
 #define IJK_API_21_LOLLIPOP                 21  // 5.0
 #define IJK_API_22_LOLLIPOP_MR1             22  // 5.1
 #define IJK_API_23_M                        23  // 6.0
+#define IJK_API_26                          26  // 8.0
+#define IJK_API_28                          28  // 9.0
+#define IJK_API_31                          31  //12.0
 
 JavaVM *SDL_JNI_GetJvm();
 void    SDL_JNI_SetJvm(JavaVM *vm);
 
 jint    SDL_JNI_SetupThreadEnv(JNIEnv **p_env);
-void    SDL_JNI_DetachThreadEnv();
+void    SDL_JNI_DetachThreadEnv(const char* thread_name);
 
 int      SDL_JNI_ThrowException(JNIEnv *env, const char *exception, const char* msg);
 int      SDL_JNI_ThrowIllegalStateException(JNIEnv *env, const char* msg);
@@ -68,6 +71,13 @@ void    SDL_JNI_DeleteGlobalRefP(JNIEnv *env, jobject *obj_ptr);
 void    SDL_JNI_DeleteLocalRefP(JNIEnv *env, jobject *obj_ptr);
 
 int     SDL_Android_GetApiLevel();
+
+void    SDL_JNI_AttachCurrentThread();
+
+void    SDL_JNI_DetachCurrentThread();
+
+int     SDL_Android_AudioSupportEAC3();
+
 
 #define IJK_FIND_JAVA_CLASS(env__, var__, classsign__) \
     do { \

@@ -38,7 +38,6 @@
 #include "libavutil/time.h"
 #include "libavformat/url.h"
 #include <stdint.h>
-
 #include "libavutil/application.h"
 
 #if HAVE_UNISTD_H

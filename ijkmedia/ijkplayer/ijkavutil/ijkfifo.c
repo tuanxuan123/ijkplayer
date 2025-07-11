@@ -23,7 +23,6 @@
 #include "ijkfifo.h"
 #include "ijkutils.h"
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 static IjkFifoBuffer *fifo_alloc_common(void *buffer, size_t size)
@@ -154,13 +153,11 @@ int ijk_av_fifo_generic_peek_at(IjkFifoBuffer *f, void *dest, int offset, int bu
 {
     uint8_t *rptr = f->rptr;
 
-    assert(offset >= 0);
 
     /*
      * *ndx are indexes modulo 2^32, they are intended to overflow,
      * to handle *ndx greater than 4gb.
      */
-    assert(buf_size + (unsigned)offset <= f->wndx - f->rndx);
 
     if (offset >= f->end - rptr)
         rptr += offset - (f->end - f->buffer);
@@ -234,7 +231,6 @@ int ijk_av_fifo_generic_read(IjkFifoBuffer *f, void *dest, int buf_size,
 /** Discard data from the FIFO. */
 void ijk_av_fifo_drain(IjkFifoBuffer *f, int size)
 {
-    assert(ijk_av_fifo_size(f) >= size);
     f->rptr += size;
     if (f->rptr >= f->end)
         f->rptr -= f->end - f->buffer;

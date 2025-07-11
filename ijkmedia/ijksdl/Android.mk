@@ -61,6 +61,7 @@ LOCAL_SRC_FILES += android/android_nativewindow.c
 LOCAL_SRC_FILES += android/ijksdl_android_jni.c
 LOCAL_SRC_FILES += android/ijksdl_aout_android_audiotrack.c
 LOCAL_SRC_FILES += android/ijksdl_aout_android_opensles.c
+LOCAL_SRC_FILES += android/ijksdl_aout_android_aaudio.c
 LOCAL_SRC_FILES += android/ijksdl_codec_android_mediacodec_dummy.c
 LOCAL_SRC_FILES += android/ijksdl_codec_android_mediacodec_internal.c
 LOCAL_SRC_FILES += android/ijksdl_codec_android_mediacodec_java.c

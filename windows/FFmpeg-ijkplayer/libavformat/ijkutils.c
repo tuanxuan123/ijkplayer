@@ -34,7 +34,6 @@ int ijkav_register_##x##_protocol(URLProtocol *protocol, int protocol_size)     
         av_log(NULL, AV_LOG_ERROR, "ijkav_register_##x##_protocol: ABI mismatch.\n");               \
         return -1;                                                                                  \
     }                                                                                               \
-    printf("ijkav_register_\n");                                                                    \
     memcpy(&ff_##x##_protocol, protocol, protocol_size);                                            \
     return 0;                                                                                       \
 }
@@ -66,26 +65,3 @@ IJK_DUMMY_PROTOCOL(ijklongurl);
 IJK_DUMMY_PROTOCOL(ijksegment);
 IJK_DUMMY_PROTOCOL(ijktcphook);
 IJK_DUMMY_PROTOCOL(ijkio);
-
-//IJK_DUMMY_PROTOCOL(ijkcache);
-static const AVClass ijk_ijkcache_context_class = {
-    .class_name = "ijkcache",
-    .item_name  = av_default_item_name,
-    .version    = LIBAVUTIL_VERSION_INT,
-    };
-
-URLProtocol ff_ijkcache_protocol = {
-    .name                = "ijkcache",
-    .url_open2           = ijkdummy_open,
-    .priv_data_size      = 1,
-    .priv_data_class     = &ijk_ijkcache_context_class,
-};
-int ijkav_register_ijkcache_protocol(URLProtocol *protocol, int protocol_size){
-    if (protocol_size != sizeof(URLProtocol)) {
-        av_log(NULL, AV_LOG_ERROR, "ijkav_register_ijkcache_protocol: ABI mismatch.\n");
-        return -1;
-    }
-    printf("ijkav_register_\n");
-    memcpy(&ff_ijkcache_protocol, protocol, protocol_size);
-    return 0;
-}

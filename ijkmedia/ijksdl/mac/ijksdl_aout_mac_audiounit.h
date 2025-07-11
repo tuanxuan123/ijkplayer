@@ -24,3 +24,5 @@
 #include "../ijksdl_aout.h"
 
 SDL_Aout *SDL_AoutMac_CreateForAudioUnit();
+
+int SDL_AoutMac_SupportEAC3();

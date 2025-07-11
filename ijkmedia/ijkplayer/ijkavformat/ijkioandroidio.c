@@ -31,7 +31,6 @@
 
 #include "j4a/class/tv/danmaku/ijk/media/player/misc/IAndroidIO.h"
 #include "ijksdl/android/ijksdl_android_jni.h"
-#include <assert.h>
 
 typedef struct IjkIOAndroidioContext {
     jobject         ijkio_androidio;

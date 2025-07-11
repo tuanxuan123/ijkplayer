@@ -51,6 +51,7 @@ typedef struct TCPContext {
     int addrinfo_one_by_one;
     int addrinfo_timeout;
     int64_t dns_cache_timeout;
+    int fix_switch;
     int dns_cache_clear;
 
     AVApplicationContext *app_ctx;
@@ -79,6 +80,7 @@ static const AVOption options[] = {
     { "dns_cache_timeout", "dns cache TTL (in microseconds)",   OFFSET(dns_cache_timeout), AV_OPT_TYPE_INT, { .i64 = -1 },       -1, INT64_MAX, .flags = D|E },
     { "dns_cache_clear", "clear dns cache",   OFFSET(dns_cache_clear), AV_OPT_TYPE_INT, { .i64 = 0},       -1, INT_MAX, .flags = D|E },
     { "fastopen", "enable fastopen",          OFFSET(fastopen), AV_OPT_TYPE_INT, { .i64 = 0},       0, INT_MAX, .flags = D|E },
+    { "fix_switch", "fix_switch",          OFFSET(fix_switch), AV_OPT_TYPE_INT, { .i64 = 1},       -1, INT_MAX, .flags = D|E },
     { NULL }
 };
 
@@ -434,6 +436,50 @@ static int tcp_open(URLContext *h, const char *uri, int flags)
     } else {
         av_log(NULL, AV_LOG_INFO, "Hit DNS cache hostname = %s\n", hostname);
         cur_ai = dns_entry->res;
+
+        if (s->fix_switch == 1)
+        {
+            av_log(NULL, AV_LOG_INFO, "Hit DNS cache fix_switch open\n");
+            /* check port in dns_entry is the same with port we pass */
+            if (cur_ai && cur_ai->ai_addr)
+            {
+#if HAVE_STRUCT_SOCKADDR_IN6
+                if (cur_ai->ai_family == AF_INET6)
+                {
+                    struct sockaddr_in6 * sockaddr_v6 = (struct sockaddr_in6 *)cur_ai->ai_addr;
+                    int portInCache = ntohs(sockaddr_v6->sin6_port);
+                    if (portInCache != port)
+                    {
+                        sockaddr_v6->sin6_port  = htons(port);
+                        av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port);
+                    }
+                }
+                else
+#endif
+                {
+                    struct sockaddr_in *sin = (struct sockaddr_in *)cur_ai->ai_addr;
+                    int portInCache = ntohs(sin->sin_port);
+                    if (portInCache != port)
+                    {
+                        sin->sin_port = htons(port);
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+            av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    }
+                }
+
+            }
+        }
     }
 
  restart:
@@ -621,6 +667,50 @@ static int tcp_fast_open(URLContext *h, const char *http_request, const char *ur
     } else {
         av_log(NULL, AV_LOG_INFO, "Hit DNS cache hostname = %s\n", hostname);
         cur_ai = dns_entry->res;
+
+        if (s->fix_switch == 1)
+        {
+            av_log(NULL, AV_LOG_INFO, "Hit DNS cache fix_switch open\n");
+            /* check port in dns_entry is the same with port we pass */
+            if (cur_ai && cur_ai->ai_addr)
+            {
+#if HAVE_STRUCT_SOCKADDR_IN6
+                if (cur_ai->ai_family == AF_INET6)
+                {
+                    struct sockaddr_in6 * sockaddr_v6 = (struct sockaddr_in6 *)cur_ai->ai_addr;
+                    int portInCache = ntohs(sockaddr_v6->sin6_port);
+                    if (portInCache != port)
+                    {
+                        sockaddr_v6->sin6_port  = htons(port);
+                        av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache ipv6 port not equal, change %d to %d\n", portInCache, port);
+                    }
+                }
+                else
+#endif
+                {
+                    struct sockaddr_in *sin = (struct sockaddr_in *)cur_ai->ai_addr;
+                    int portInCache = ntohs(sin->sin_port);
+                    if (portInCache != port)
+                    {
+                        sin->sin_port = htons(port);
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+            av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port); 
+                        av_log(NULL, AV_LOG_INFO, "DNS cache port not equal, change %d to %d\n", portInCache, port);
+                    }
+                }
+
+            }
+        }
     }
 
  restart:

@@ -28,6 +28,7 @@
 #include "ijksdl_stdinc.h"
 
 void SDL_Delay(Uint32 ms);
+int64_t SDL_GetCurrentTime();
 
 Uint64 SDL_GetTickHR(void);
 

@@ -23,19 +23,17 @@
 #include "libavformat/url.h"
 #include "libavutil/avstring.h"
 #include "libavutil/opt.h"
-
-
-#ifdef _WIN32
-#include "../ijkavutil/opt.h"
-
-#else
-#include "ijkplayer/ijkavutil/opt.h"
-#endif // _WIN32
+#include "ijkavutil/opt.h"
 
 
 
 #include "ijkavformat.h"
 #include "libavutil/application.h"
+#include "../ff_redefine.h"
+#include "ff_ffplay_def.h"
+
+
+#define MAX_RETRY_COUNT                 4
 
 typedef struct {
     AVClass         *class;
@@ -93,6 +91,7 @@ static int ijklivehook_read_close(AVFormatContext *avf)
     Context *c = avf->priv_data;
 
     avformat_close_input(&c->inner);
+
     return 0;
 }
 
@@ -139,7 +138,10 @@ static int open_inner(AVFormatContext *avf)
     AVDictionaryEntry *t = NULL;
     int fps_flag = 0;
 
+
     new_avf = avformat_alloc_context();
+
+    
     if (!new_avf) {
         ret = AVERROR(ENOMEM);
         goto fail;
@@ -163,15 +165,23 @@ static int open_inner(AVFormatContext *avf)
     }
 
     new_avf->interrupt_callback = avf->interrupt_callback;
+    new_avf->opaque = avf->opaque;
+
+
     ret = avformat_open_input(&new_avf, c->io_control.url, NULL, &tmp_opts);
+
+
     if (ret < 0)
         goto fail;
 
+
     ret = avformat_find_stream_info(new_avf, NULL);
+
     if (ret < 0)
         goto fail;
 
     for (i = 0; i < new_avf->nb_streams; i++) {
+
         AVStream *st = avformat_new_stream(avf, NULL);
         if (!st) {
             ret = AVERROR(ENOMEM);
@@ -183,13 +193,19 @@ static int open_inner(AVFormatContext *avf)
             goto fail;
     }
 
+
     avformat_close_input(&c->inner);
+
+    
     c->inner = new_avf;
     new_avf = NULL;
     ret = 0;
 fail:
     av_dict_free(&tmp_opts);
+    
     avformat_close_input(&new_avf);
+
+    
     return ret;
 }
 
@@ -204,9 +220,9 @@ static int ijklivehook_read_header(AVFormatContext *avf, AVDictionary **options)
 
     c->io_control.size = sizeof(c->io_control);
 #ifdef _WIN32
-	strncpy(c->io_control.url, inner_url, sizeof(c->io_control.url));
+    strncpy(c->io_control.url, inner_url, sizeof(c->io_control.url));
 #else
-	strlcpy(c->io_control.url, inner_url, sizeof(c->io_control.url));
+    strlcpy(c->io_control.url, inner_url, sizeof(c->io_control.url));
 #endif // _WIN32
 
     
@@ -222,25 +238,24 @@ static int ijklivehook_read_header(AVFormatContext *avf, AVDictionary **options)
         av_dict_copy(&c->open_opts, *options, 0);
 
     c->io_control.retry_counter = 0;
+
     ret = ijkurlhook_call_inject(avf);
     if (ret) {
         ret = AVERROR_EXIT;
         goto fail;
     }
+
+
     ret = open_inner(avf);
     while (ret < 0) {
-        // no EOF in live mode
-        switch (ret) {
-            case AVERROR_EXIT:
-                goto fail;
-        }
-
-        c->io_control.retry_counter++;
+        
+        c->io_control.retry_counter++;   
         ret = ijkurlhook_call_inject(avf);
-        if (ret) {
+        if (ret || c->io_control.retry_counter > MAX_RETRY_COUNT) {
             ret = AVERROR_EXIT;
             goto fail;
         }
+
 
         c->discontinuity = 1;
         ret = open_inner(avf);
@@ -254,42 +269,46 @@ fail:
 static int ijklivehook_read_packet(AVFormatContext *avf, AVPacket *pkt)
 {
     Context *c   = avf->priv_data;
+    FFPlayer *ffp = avf->opaque;   
     int      ret = -1;
 
     if (c->error)
         return c->error;
 
-    if (c->inner)
+    if (c->inner) {
         ret = av_read_frame(c->inner, pkt);
+    }
+
+    
 
     c->io_control.retry_counter = 0;
     while (ret < 0) {
         if (c->inner && c->inner->pb && c->inner->pb->error && avf->pb)
             avf->pb->error = c->inner->pb->error;
 
-        // no EOF in live mode
-        switch (ret) {
-            case AVERROR_EXIT:
-                c->error = AVERROR_EXIT;
-                goto fail;
-            case AVERROR(EAGAIN):
-                goto continue_read;
-        }
 
+        if(ffp && c->io_control.retry_counter == 0)
+            ffp_notify_msg1(ffp, FFP_MSG_BUFFER_FAIL_WEAK_NETWORK);
+
+       
         c->io_control.retry_counter++;
         ret = ijkurlhook_call_inject(avf);
         if (ret) {
-            ret = AVERROR_EXIT;
             goto fail;
         }
 
         c->discontinuity = 1;
         ret = open_inner(avf);
-        if (ret)
-            continue;
-
-continue_read:
-        ret = av_read_frame(c->inner, pkt);
+        if (ret) {
+            if(c->io_control.retry_counter >= MAX_RETRY_COUNT) {
+                if(ffp)
+                    ffp_notify_msg1(ffp, FFP_MSG_RECONNECT_FAIL_AND_EXIT);
+                
+                goto fail;
+            }
+        } else {
+            ret = av_read_frame(c->inner, pkt);
+        }
     }
 
     if (c->discontinuity) {
@@ -299,7 +318,7 @@ continue_read:
 
     return 0;
 fail:
-    return ret;
+    return AVERROR_EXIT;
 }
 
 #define OFFSET(x) offsetof(Context, x)

@@ -19,12 +19,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <assert.h>
 #include "libavformat/avformat.h"
 #include "libavformat/url.h"
 #include "libavutil/avstring.h"
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
+
 
 typedef struct Context {
     AVClass        *class;
@@ -37,7 +37,7 @@ typedef struct Context {
 static int ijklongurl_open(URLContext *h, const char *arg, int flags, AVDictionary **options)
 {
     Context *c = h->priv_data;
-    printf("%x %s\n", c->url, *c->url);
+
     if (!c->url || !*c->url)
         return AVERROR_EXTERNAL;
 

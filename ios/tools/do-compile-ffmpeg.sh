@@ -170,7 +170,7 @@ echo "===================="
 echo "[*] make ios toolchain $FF_BUILD_NAME"
 echo "===================="
 
-FF_BUILD_SOURCE="$FF_BUILD_ROOT/$FF_BUILD_NAME"
+FF_BUILD_SOURCE="$FF_BUILD_ROOT/ffmpeg-arm64"
 FF_BUILD_PREFIX="$FF_BUILD_ROOT/build/$FF_BUILD_NAME/output"
 
 FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS --prefix=$FF_BUILD_PREFIX"
@@ -201,16 +201,31 @@ FFMPEG_DEP_LIBS=
 echo "\n--------------------"
 echo "[*] check OpenSSL"
 echo "----------------------"
-FFMPEG_DEP_OPENSSL_INC=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/include
-FFMPEG_DEP_OPENSSL_LIB=$FF_BUILD_ROOT/build/$FF_BUILD_NAME_OPENSSL/output/lib
+FFMPEG_DEP_OPENSSL_INC=$FF_BUILD_ROOT/openssl/include
+FFMPEG_DEP_OPENSSL_LIB=$FF_BUILD_ROOT/openssl/lib
+
+
+FFMPEG_DEP_VORBIS_INC=$FF_BUILD_ROOT/libvorbis/include
+FFMPEG_DEP_VORBIS_LIB=$FF_BUILD_ROOT/libvorbis/lib
 #--------------------
 # with openssl
+
+if [ -f "${FFMPEG_DEP_VORBIS_LIB}/libvorbis.a" ]; then
+    FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS --enable-libvorbis"
+
+    FFMPEG_CFLAGS="$FFMPEG_CFLAGS -I${FFMPEG_DEP_VORBIS_INC}"
+    FFMPEG_DEP_LIBS="$FFMPEG_CFLAGS -L${FFMPEG_DEP_VORBIS_LIB} -lvorbis"
+fi
+
+
 if [ -f "${FFMPEG_DEP_OPENSSL_LIB}/libssl.a" ]; then
     FFMPEG_CFG_FLAGS="$FFMPEG_CFG_FLAGS --enable-openssl"
 
     FFMPEG_CFLAGS="$FFMPEG_CFLAGS -I${FFMPEG_DEP_OPENSSL_INC}"
     FFMPEG_DEP_LIBS="$FFMPEG_CFLAGS -L${FFMPEG_DEP_OPENSSL_LIB} -lssl -lcrypto"
 fi
+
+
 
 #--------------------
 echo "\n--------------------"
@@ -230,19 +245,17 @@ fi
 export DEBUG_INFORMATION_FORMAT=dwarf-with-dsym
 
 cd $FF_BUILD_SOURCE
-if [ -f "./config.h" ]; then
-    echo 'reuse configure'
-else
-    echo "config: $FFMPEG_CFG_FLAGS $FF_XCRUN_CC"
-    ./configure \
-        $FFMPEG_CFG_FLAGS \
-        --cc="$FF_XCRUN_CC" \
-        $FFMPEG_CFG_CPU \
-        --extra-cflags="$FFMPEG_CFLAGS" \
-        --extra-cxxflags="$FFMPEG_CFLAGS" \
-        --extra-ldflags="$FFMPEG_LDFLAGS $FFMPEG_DEP_LIBS"
-    make clean
-fi
+
+echo "config: $FFMPEG_CFG_FLAGS $FF_XCRUN_CC"
+./configure \
+    $FFMPEG_CFG_FLAGS \
+    --cc="$FF_XCRUN_CC" \
+    $FFMPEG_CFG_CPU \
+    --extra-cflags="$FFMPEG_CFLAGS -fvisibility=hidden" \
+    --extra-cxxflags="$FFMPEG_CFLAGS -fvisibility=hidden" \
+    --extra-ldflags="$FFMPEG_LDFLAGS $FFMPEG_DEP_LIBS"
+make clean
+
 
 #--------------------
 echo "\n--------------------"

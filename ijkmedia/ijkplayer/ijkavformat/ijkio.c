@@ -19,26 +19,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <assert.h>
 #include "libavformat/avformat.h"
 #include "libavformat/url.h"
 #include "libavutil/avstring.h"
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
-
+#include "libavutil/dict.h"
 #include "ijkiomanager.h"
-#ifdef _WIN32
-#include "../ijkavutil/ijkdict.h"
-#else
-#include "ijkplayer/ijkavutil/ijkdict.h"
-#endif // _WIN32
 
 
 
 typedef struct Context {
     AVClass *class;
-    int64_t *io_manager_ctx;
+    void *io_manager_ctx;
 } Context;
+
 
 static int ijkio_copy_options(IjkAVDictionary **dst, AVDictionary *src) {
     AVDictionaryEntry *t = NULL;
@@ -47,7 +42,6 @@ static int ijkio_copy_options(IjkAVDictionary **dst, AVDictionary *src) {
         int ret = ijk_av_dict_set(dst, t->key, t->value, 0);
         if (ret < 0)
             return ret;
-
     }
 
     return 0;
@@ -57,9 +51,15 @@ static int ijkio_open(URLContext *h, const char *arg, int flags, AVDictionary **
 {
     Context *c = h->priv_data;
     int ret = -1;
-    ijkio_manager_create(&c->io_manager_ctx,NULL);
-    if (!c || !c->io_manager_ctx)
+
+
+    if (!c)
         return -1;
+
+    if(!c->io_manager_ctx) {
+        ijkio_manager_create((IjkIOManagerContext **)&c->io_manager_ctx, NULL);
+    }
+
 
     IjkIOManagerContext *manager_ctx = (IjkIOManagerContext *)(c->io_manager_ctx);
     manager_ctx->ijkio_interrupt_callback = (IjkAVIOInterruptCB *)&(h->interrupt_callback);
@@ -109,8 +109,8 @@ static int ijkio_close(URLContext *h)
     if (!c || !c->io_manager_ctx)
         return -1;
 
+
     ((IjkIOManagerContext *)(c->io_manager_ctx))->cur_ffmpeg_ctx  = c;
-    
     return ijkio_manager_io_close((IjkIOManagerContext *)(c->io_manager_ctx));
 }
 
@@ -138,5 +138,5 @@ URLProtocol ijkimp_ff_ijkio_protocol = {
     .url_seek            = ijkio_seek,
     .url_close           = ijkio_close,
     .priv_data_size      = sizeof(Context),
-    .priv_data_class     = &ijkio_context_class,
+    //.priv_data_class     = &ijkio_context_class,            //in armv7a, ffmpeg deal with priv_data_class has bug
 };

@@ -24,7 +24,6 @@
 #include "ijksdl_aout_mac_audiounit.h"
 
 #include <stdbool.h>
-#include <assert.h>
 #include "../ijksdl_inc_internal.h"
 #include "../ijksdl_thread.h"
 #include "../ijksdl_aout_internal.h"
@@ -34,18 +33,24 @@
 
 struct SDL_Aout_Opaque {
     IJKSDLAudioQueueController *aoutController;
+    float volume;
+    bool need_flush_volume;
 };
 
 static int aout_open_audio(SDL_Aout *aout, const SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
 {
-    assert(desired);
     SDLTRACE("aout_open_audio()\n");
     SDL_Aout_Opaque *opaque = aout->opaque;
 
     opaque->aoutController = [[IJKSDLAudioQueueController alloc] initWithAudioSpec:desired];
     if (!opaque->aoutController) {
-        ALOGE("aout_open_audio_n: failed to new AudioTrcak()\n");
+        ALOGE("aout_open_audio_n: failed to new AudioQueue()\n");
         return -1;
+    }
+    
+    if(opaque->need_flush_volume) {
+        [opaque->aoutController setPlaybackVolume:opaque->volume];
+        opaque->need_flush_volume = false;
     }
 
     if (obtained)
@@ -90,6 +95,21 @@ static void aout_set_playback_rate(SDL_Aout *aout, float playbackRate)
     [opaque->aoutController setPlaybackRate:playbackRate];
 }
 
+static void aout_set_volume(SDL_Aout *aout, float left_volume, float right_volume)
+{
+    SDLTRACE("aout_set_volume()\n");
+    SDL_Aout_Opaque *opaque = aout->opaque;
+    float volume = (left_volume + right_volume) / 200.0f;
+    
+    if(opaque->aoutController) {
+        [opaque->aoutController setPlaybackVolume:volume];
+    } else {
+        opaque->need_flush_volume = true;
+        opaque->volume = volume;
+    }
+    
+}
+
 static void aout_set_playback_volume(SDL_Aout *aout, float volume)
 {
     SDLTRACE("aout_set_volume()\n");
@@ -128,6 +148,11 @@ static void aout_free_l(SDL_Aout *aout)
 SDL_Aout *SDL_AoutMac_CreateForAudioUnit()
 {
     SDL_Aout *aout = SDL_Aout_CreateInternal(sizeof(SDL_Aout_Opaque));
+    SDL_Aout_Opaque *opaque = aout->opaque;
+    opaque->volume = 0.0f;
+    opaque->need_flush_volume = false;
+    opaque->aoutController = nil;
+    
     if (!aout)
         return NULL;
 
@@ -137,10 +162,17 @@ SDL_Aout *SDL_AoutMac_CreateForAudioUnit()
     aout->pause_audio = aout_pause_audio;
     aout->flush_audio = aout_flush_audio;
     aout->close_audio = aout_close_audio;
+    aout->set_volume = aout_set_volume;
 
     aout->func_set_playback_rate = aout_set_playback_rate;
     aout->func_set_playback_volume = aout_set_playback_volume;
     aout->func_get_latency_seconds = auout_get_latency_seconds;
     aout->func_get_audio_persecond_callbacks = aout_get_persecond_callbacks;
     return aout;
+}
+
+
+int SDL_AoutMac_SupportEAC3()
+{
+    return 1;
 }

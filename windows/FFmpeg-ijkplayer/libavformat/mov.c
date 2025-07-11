@@ -1149,6 +1149,31 @@ static int mov_read_ftyp(MOVContext *c, AVIOContext *pb, MOVAtom atom)
     return 0;
 }
 
+static int mov_read_vapc(MOVContext *c, AVIOContext *pb, MOVAtom atom)
+{
+    char* vapc_str;
+    int vapc_str_size;
+
+    vapc_str_size = atom.size;
+    if (vapc_str_size < 0)
+        return AVERROR_INVALIDDATA;
+
+    vapc_str = av_malloc(vapc_str_size + 1); /* Add null terminator */
+    if (!vapc_str)
+        return AVERROR(ENOMEM);
+
+    int ret = ffio_read_size(pb, vapc_str, vapc_str_size);
+    if (ret < 0) {
+        av_freep(&vapc_str);
+        return -1;
+    }
+    vapc_str[vapc_str_size] = 0;
+
+    av_dict_set(&c->fc->metadata, "vapc", vapc_str, 0);
+    av_freep(&vapc_str);
+    return 0;
+}
+
 /* this atom should contain all header atoms */
 static int mov_read_moov(MOVContext *c, AVIOContext *pb, MOVAtom atom)
 {
@@ -5572,6 +5597,7 @@ static const MOVParseTableEntry mov_default_parse_table[] = {
 { MKTAG('f','i','e','l'), mov_read_fiel },
 { MKTAG('a','d','r','m'), mov_read_adrm },
 { MKTAG('f','t','y','p'), mov_read_ftyp },
+{ MKTAG('v','a','p','c'), mov_read_vapc },
 { MKTAG('g','l','b','l'), mov_read_glbl },
 { MKTAG('h','d','l','r'), mov_read_hdlr },
 { MKTAG('i','l','s','t'), mov_read_ilst },
